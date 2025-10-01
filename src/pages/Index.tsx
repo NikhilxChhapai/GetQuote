@@ -18,7 +18,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag } from "lucide-react";
-import { paperBagPricingData } from "@/data/paperBagPricing";
+import { sbs2SheetsPricingData } from "@/data/paperBagPricing";
 
 const Index = () => {
   const [userName, setUserName] = useState("");
@@ -103,7 +103,7 @@ const Index = () => {
   });
 
   const [paperBagPricing, setPaperBagPricing] = useState({
-    baseData: paperBagPricingData,
+    baseData: sbs2SheetsPricingData,
     treatments: {
       foiling: 4000,
       spotUV: 3000,
