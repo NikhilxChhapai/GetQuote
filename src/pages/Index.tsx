@@ -1,20 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calculator } from "@/components/Calculator";
 import { BrochureCalculator } from "@/components/BrochureCalculator";
 import { BusinessCardCalculator } from "@/components/BusinessCardCalculator";
+import { PaperBagCalculator } from "@/components/PaperBagCalculator";
 import { BoxPricingSettings } from "@/components/BoxPricingSettings";
 import { BrochurePricingSettings } from "@/components/BrochurePricingSettings";
 import { BusinessCardPricingSettings } from "@/components/BusinessCardPricingSettings";
+import { PaperBagPricingSettings } from "@/components/PaperBagPricingSettings";
 import { BoxGuide } from "@/components/BoxGuide";
 import { BrochureGuide } from "@/components/BrochureGuide";
 import { BusinessCardGuide } from "@/components/BusinessCardGuide";
+import { PaperBagGuide } from "@/components/PaperBagGuide";
+import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { PasswordProtection } from "@/components/PasswordProtection";
 import { HelpDialog } from "@/components/HelpDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle } from "lucide-react";
+import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag } from "lucide-react";
+import { paperBagPricingData } from "@/data/paperBagPricing";
 
 const Index = () => {
+  const [userName, setUserName] = useState("");
+  const [settingsUnlocked, setSettingsUnlocked] = useState(false);
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("userName");
+    if (storedName) {
+      setUserName(storedName);
+    }
+  }, []);
+
+  const handleNameSubmit = (name: string) => {
+    setUserName(name);
+    localStorage.setItem("userName", name);
+  };
+
   const [boxPricing, setBoxPricing] = useState({
     boardPrices: {
       "1.7mm": 42,
@@ -81,6 +102,18 @@ const Index = () => {
     },
   });
 
+  const [paperBagPricing, setPaperBagPricing] = useState({
+    baseData: paperBagPricingData,
+    treatments: {
+      foiling: 4000,
+      spotUV: 3000,
+    },
+  });
+
+  if (!userName) {
+    return <WelcomeScreen onNameSubmit={handleNameSubmit} />;
+  }
+
   return (
     <div className="min-h-screen bg-[var(--gradient-subtle)] transition-colors duration-300">
       {/* Header */}
@@ -91,14 +124,11 @@ const Index = () => {
               <div className="h-11 w-11 rounded-xl bg-[var(--gradient-primary)] flex items-center justify-center shadow-[var(--shadow-elegant)] hover:scale-105 transition-transform">
                 <CalculatorIcon className="h-6 w-6 text-primary-foreground" />
               </div>
-              <div className="hidden sm:block">
+              <div>
                 <h1 className="text-xl lg:text-2xl font-bold bg-[var(--gradient-primary)] bg-clip-text text-transparent">
-                  Professional Price Calculator
+                  Price Calculator
                 </h1>
-                <p className="text-xs lg:text-sm text-muted-foreground">Boxes, Brochures & Business Cards</p>
-              </div>
-              <div className="block sm:hidden">
-                <h1 className="text-lg font-bold text-primary">Calculator</h1>
+                <p className="text-xs lg:text-sm text-muted-foreground">Welcome, {userName}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -112,7 +142,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-6 lg:py-8">
         <Tabs defaultValue="box" className="w-full">
-          <TabsList className="grid w-full max-w-5xl mx-auto grid-cols-3 sm:grid-cols-5 gap-2 mb-6 lg:mb-8 h-auto p-2 bg-muted/50 backdrop-blur-sm">
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-3 sm:grid-cols-6 gap-2 mb-6 lg:mb-8 h-auto p-2 bg-muted/50 backdrop-blur-sm">
             <TabsTrigger value="box" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
               <CalculatorIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="text-xs sm:text-sm">Box</span>
@@ -123,8 +153,12 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="card" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
               <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm hidden sm:inline">Business Card</span>
+              <span className="text-xs sm:text-sm hidden sm:inline">Card</span>
               <span className="text-xs sm:hidden">Card</span>
+            </TabsTrigger>
+            <TabsTrigger value="paperbag" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
+              <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="text-xs sm:text-sm">Paper Bag</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
               <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -148,13 +182,21 @@ const Index = () => {
             <BusinessCardCalculator pricing={businessCardPricing} />
           </TabsContent>
 
+          <TabsContent value="paperbag" className="mt-0">
+            <PaperBagCalculator pricing={paperBagPricing} userName={userName} />
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-0">
+            {!settingsUnlocked ? (
+              <PasswordProtection onCorrectPassword={() => setSettingsUnlocked(true)} />
+            ) : (
             <div className="max-w-5xl mx-auto">
               <Tabs defaultValue="box-settings" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 mb-6 h-auto p-2">
-                  <TabsTrigger value="box-settings" className="text-xs sm:text-sm">Box Settings</TabsTrigger>
-                  <TabsTrigger value="brochure-settings" className="text-xs sm:text-sm">Brochure Settings</TabsTrigger>
-                  <TabsTrigger value="card-settings" className="text-xs sm:text-sm">Card Settings</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 mb-6 h-auto p-2">
+                  <TabsTrigger value="box-settings" className="text-xs sm:text-sm">Box</TabsTrigger>
+                  <TabsTrigger value="brochure-settings" className="text-xs sm:text-sm">Brochure</TabsTrigger>
+                  <TabsTrigger value="card-settings" className="text-xs sm:text-sm">Card</TabsTrigger>
+                  <TabsTrigger value="paperbag-settings" className="text-xs sm:text-sm">Paper Bag</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="box-settings">
@@ -189,17 +231,30 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
+                <TabsContent value="paperbag-settings">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Paper Bag Calculator Pricing</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <PaperBagPricingSettings pricing={paperBagPricing} onUpdate={setPaperBagPricing} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
             </div>
+            )}
           </TabsContent>
 
           <TabsContent value="guide" className="mt-0">
             <div className="max-w-5xl mx-auto">
               <Tabs defaultValue="box-guide" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 mb-6 h-auto p-2">
-                  <TabsTrigger value="box-guide" className="text-xs sm:text-sm">Box Guide</TabsTrigger>
-                  <TabsTrigger value="brochure-guide" className="text-xs sm:text-sm">Brochure Guide</TabsTrigger>
-                  <TabsTrigger value="card-guide" className="text-xs sm:text-sm">Card Guide</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 mb-6 h-auto p-2">
+                  <TabsTrigger value="box-guide" className="text-xs sm:text-sm">Box</TabsTrigger>
+                  <TabsTrigger value="brochure-guide" className="text-xs sm:text-sm">Brochure</TabsTrigger>
+                  <TabsTrigger value="card-guide" className="text-xs sm:text-sm">Card</TabsTrigger>
+                  <TabsTrigger value="paperbag-guide" className="text-xs sm:text-sm">Paper Bag</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="box-guide">
@@ -213,6 +268,10 @@ const Index = () => {
                 <TabsContent value="card-guide">
                   <BusinessCardGuide />
                 </TabsContent>
+
+                <TabsContent value="paperbag-guide">
+                  <PaperBagGuide />
+                </TabsContent>
               </Tabs>
             </div>
           </TabsContent>
@@ -222,7 +281,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border/50 bg-card/50 backdrop-blur-sm mt-12 lg:mt-16">
         <div className="container mx-auto px-4 lg:px-6 py-6 text-center text-xs sm:text-sm text-muted-foreground">
-          <p>Professional pricing calculator for boxes, brochures, and business cards</p>
+          <p>Professional pricing calculator for boxes, brochures, business cards & paper bags</p>
         </div>
       </footer>
     </div>
