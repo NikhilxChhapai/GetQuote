@@ -30,11 +30,12 @@ interface BrochureCalculatorProps {
 }
 
 export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalculatorProps) => {
-  const [length, setLength] = useState<number>(30);
-  const [height, setHeight] = useState<number>(10);
-  const [gusset, setGusset] = useState<number>(2);
+  const [length, setLength] = useState<number>(36);
+  const [height, setHeight] = useState<number>(12.5);
+  const [gusset, setGusset] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(500);
   const [paperGSM, setPaperGSM] = useState<string>("300");
+  const [paperPrice, setPaperPrice] = useState<number>(100);
   const [includeLamination, setIncludeLamination] = useState(true);
   const [includeFoiling, setIncludeFoiling] = useState(false);
   const [includeSpotUV, setIncludeSpotUV] = useState(false);
@@ -62,6 +63,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
     embossingCost: 0,
     pocketCost: 0,
     totalCost: 0,
+    sellingPrice: 0,
     perPieceCost: 0,
     // GST and shipping fields
     baseAmount: 0,
@@ -76,48 +78,68 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
 
   useEffect(() => {
     calculatePrice();
-  }, [length, height, gusset, quantity, paperGSM, includeLamination, includeFoiling, includeSpotUV, includeEmbossing, includePocket, pricing]);
+  }, [length, height, gusset, quantity, paperGSM, paperPrice, includeLamination, includeFoiling, includeSpotUV, includeEmbossing, includePocket, pricing]);
 
   const calculatePrice = () => {
-    // Flat dimensions calculation
+    // BROCHURE CALCULATIONS - Based on provided Excel formulas
+    
+    // Flat dimensions calculation - Excel formulas
+    // Flat Width: L+G+1
     const flatWidth = length + gusset + 1;
+    // Flat Height: H+G*0.7+1.5
     const flatHeight = height + (gusset * 0.7) + 1.5;
     
-    // Paper calculations
-    const paperPrice = pricing.paperGSMPrices[paperGSM] || 100;
-    const sheetArea = 36 * 12.5; // Standard sheet size in inches
-    const brochureArea = flatWidth * flatHeight;
-    const upsPerSheet = Math.floor(sheetArea / brochureArea);
-    const paperCostPerSheet = (paperPrice * flatWidth * flatHeight) / sheetArea;
+    // Paper calculations - Excel formulas
+    // Use the paperPrice state directly
     
-    // Total sheets needed (with 10% wastage)
-    const theoreticalSheets = Math.ceil(quantity / Math.max(1, upsPerSheet));
-    const totalSheetsNeeded = Math.ceil(theoreticalSheets * 1.1);
+    // Paper Cost per Sheet: (flatWidth * flatHeight * paperGSM) / 3100 / 500 * paperPrice
+    const paperCostPerSheet = (flatWidth * flatHeight * paperGSM) / 3100 / 500 * paperPrice;
     
-    const totalPaperCost = totalSheetsNeeded * paperCostPerSheet;
+    // Total Sheets Needed: quantity + 400
+    const totalSheetsNeeded = quantity + 400;
     
-    // Printing cost based on quantity
-    let printingCost = pricing.printingBase;
-    if (quantity >= 5000) printingCost = pricing.printingBase * 1.0;
-    else if (quantity >= 3000) printingCost = pricing.printingBase * 1.5;
-    else if (quantity >= 2000) printingCost = pricing.printingBase * 1.3;
-    else if (quantity >= 1000) printingCost = pricing.printingBase * 1.2;
+    // Total Paper Cost
+    const totalPaperCost = paperCostPerSheet * totalSheetsNeeded;
     
-    // Lamination cost
-    const laminationCost = includeLamination ? (totalSheetsNeeded * pricing.laminationBase) / 500 : 0;
+    // Printing Cost - Excel tiered formula
+    // IF(totalSheetsNeeded<=1000, 5500, IF(totalSheetsNeeded<=2000, 6500, IF(totalSheetsNeeded<=3000, 7500, IF(totalSheetsNeeded<=4000, 8500, IF(totalSheetsNeeded<=5000, 10000, (totalSheetsNeeded/1000)*1000)))))
+    let printingCost: number;
+    if (totalSheetsNeeded <= 1000) {
+      printingCost = 5500;
+    } else if (totalSheetsNeeded <= 2000) {
+      printingCost = 6500;
+    } else if (totalSheetsNeeded <= 3000) {
+      printingCost = 7500;
+    } else if (totalSheetsNeeded <= 4000) {
+      printingCost = 8500;
+    } else if (totalSheetsNeeded <= 5000) {
+      printingCost = 10000;
+    } else {
+      printingCost = (totalSheetsNeeded / 1000) * 1000;
+    }
     
-    // Die cutting cost
-    const dieCuttingCost = (totalSheetsNeeded * pricing.dieCuttingBase) / 500;
+    // Lamination Cost: MAX(flatWidth*flatHeight/250 * totalSheetsNeeded, 750)
+    const laminationCost = includeLamination ? Math.max((flatWidth * flatHeight / 250) * totalSheetsNeeded, 750) : 0;
     
-    // Packing cost
-    const packingCost = (quantity * pricing.packingBase) / 500;
+    // Die Cutting Cost: (totalSheetsNeeded/1000)*1000
+    const dieCuttingCost = (totalSheetsNeeded / 1000) * 1000;
     
-    // Premium finishes
-    const foilingCost = includeFoiling ? pricing.foilingBase * (quantity / 500) : 0;
-    const spotUVCost = includeSpotUV ? pricing.spotUVBase * (quantity / 500) : 0;
-    const embossingCost = includeEmbossing ? pricing.embossingBase * (quantity / 500) : 0;
-    const pocketCost = includePocket ? pricing.pocketBase * (quantity / 500) : 0;
+    // Packing Cost: quantity * 2.5
+    const packingCost = quantity * 2.5;
     
+    // Foiling Cost: MAX(quantity*8, 5000)
+    const foilingCost = includeFoiling ? Math.max(quantity * 8, 5000) : 0;
+    
+    // Spot UV Cost: MAX(totalSheetsNeeded*5, 6000)
+    const spotUVCost = includeSpotUV ? Math.max(totalSheetsNeeded * 5, 6000) : 0;
+    
+    // EP (Embossing Press) Cost: quantity * 30
+    const embossingCost = includeEmbossing ? quantity * 30 : 0;
+    
+    // Pocket Cost: quantity * 10
+    const pocketCost = includePocket ? quantity * 10 : 0;
+    
+    // Total Cost
     const totalCost = 
       totalPaperCost + 
       printingCost + 
@@ -129,7 +151,11 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
       embossingCost + 
       pocketCost;
     
-    const perPieceCost = totalCost / quantity;
+    // Selling Price: totalCost * 1.7 (70% markup)
+    const sellingPrice = totalCost * 1.7;
+    
+    // Per piece cost
+    const perPieceCost = sellingPrice / quantity;
 
     setResults({
       flatWidth: Math.round(flatWidth * 100) / 100,
@@ -146,8 +172,140 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
       embossingCost: Math.round(embossingCost * 100) / 100,
       pocketCost: Math.round(pocketCost * 100) / 100,
       totalCost: Math.round(totalCost * 100) / 100,
+      sellingPrice: Math.round(sellingPrice * 100) / 100,
       perPieceCost: Math.round(perPieceCost * 100) / 100,
     });
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    // Header with better formatting
+    doc.setFontSize(22);
+    doc.setTextColor(0, 102, 204);
+    doc.text('BROCHURE QUOTATION', 20, 30);
+    
+    // Date and reference
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const today = new Date();
+    doc.text(`Generated on: ${today.toLocaleDateString('en-IN')}`, 20, 45);
+    doc.text(`Quote Ref: BR-${today.getTime().toString().slice(-6)}`, 20, 55);
+    doc.text(`Customer: ${userName}`, 20, 65);
+    
+    // Specifications section
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('BROCHURE SPECIFICATIONS:', 20, 85);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Dimensions:`, 30, 100);
+    doc.text(`${length}" x ${height}" x ${gusset}"`, 120, 100);
+    
+    doc.text(`Quantity:`, 30, 115);
+    doc.text(`${quantity.toLocaleString('en-IN')} brochures`, 120, 115);
+    
+    doc.text(`Paper GSM:`, 30, 130);
+    doc.text(`${paperGSM} GSM`, 120, 130);
+    
+    doc.text(`Paper Price:`, 30, 145);
+    doc.text(`₹${paperPrice}/sheet`, 120, 145);
+    
+    doc.text(`Flat Size:`, 30, 160);
+    doc.text(`${results.flatWidth.toFixed(2)}" x ${results.flatHeight.toFixed(2)}"`, 120, 160);
+    
+    doc.text(`Total Sheets Needed:`, 30, 175);
+    doc.text(`${results.totalSheetsNeeded}`, 120, 175);
+    
+    // Cost Breakdown section
+    let yPos = 195;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('COST BREAKDOWN:', 20, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Paper Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.totalPaperCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Printing Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.printingCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    if (includeLamination) {
+      doc.text(`Lamination Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.laminationCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    doc.text(`Die Cutting Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.dieCuttingCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Packing Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.packingCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    if (includeFoiling) {
+      doc.text(`Foiling Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.foilingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    if (includeSpotUV) {
+      doc.text(`Spot UV Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.spotUVCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    if (includeEmbossing) {
+      doc.text(`Embossing Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.embossingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    if (includePocket) {
+      doc.text(`Pocket Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.pocketCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    // Draw a line before total
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 5, 190, yPos + 5);
+    yPos += 15;
+    
+    // Total Cost
+    doc.setFontSize(16);
+    doc.setTextColor(0, 102, 204);
+    doc.text('TOTAL COST:', 20, yPos);
+    doc.text(`Rs. ${results.totalCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 20;
+    
+    // Selling Price (with 70% markup)
+    doc.setFontSize(16);
+    doc.setTextColor(0, 150, 0);
+    doc.text('SELLING PRICE:', 20, yPos);
+    doc.text(`Rs. ${results.sellingPrice.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 20;
+    
+    // Per brochure cost
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Per Brochure Price:', 20, yPos);
+    doc.text(`Rs. ${results.perPieceCost.toFixed(2)}`, 120, yPos);
+    
+    // Footer with better formatting
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This is a computer generated quotation. All prices are in Indian Rupees.', 20, 280);
+    doc.text('Selling price includes 70% markup. Valid for 30 days from the date of generation.', 20, 290);
+    
+    // Save the PDF
+    doc.save(`Brochure-Quote-${today.toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -217,20 +375,33 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="paperGSM">Paper GSM</Label>
-            <Select value={paperGSM} onValueChange={setPaperGSM}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.keys(pricing.paperGSMPrices).map((gsm) => (
-                  <SelectItem key={gsm} value={gsm}>
-                    {gsm} GSM - ₹{pricing.paperGSMPrices[gsm]}/sheet
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="paperGSM">Paper GSM</Label>
+              <Select value={paperGSM} onValueChange={setPaperGSM}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="250">250 GSM</SelectItem>
+                  <SelectItem value="280">280 GSM</SelectItem>
+                  <SelectItem value="300">300 GSM</SelectItem>
+                  <SelectItem value="350">350 GSM</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paperPrice">Paper Price (₹/sheet)</Label>
+              <Input
+                id="paperPrice"
+                type="number"
+                value={paperPrice === 0 ? '' : paperPrice}
+                onChange={(e) => setPaperPrice(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
+                min="1"
+                placeholder="Enter price"
+              />
+            </div>
           </div>
 
           <div className="space-y-4 pt-4 border-t">
@@ -277,7 +448,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                 />
                 <Label htmlFor="embossing" className="cursor-pointer font-normal">
                   <Sparkles className="inline h-4 w-4 mr-1" />
-                  Embossing
+                  EP (Embossing Press)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -371,14 +542,32 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
             <CardTitle className="text-2xl">Total Price</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-lg">Total Cost:</span>
-                <span className="text-3xl font-bold">₹{results.totalCost.toLocaleString('en-IN')}</span>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg">Total Cost:</span>
+                  <span className="text-2xl font-bold">₹{results.totalCost.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
+                  <span className="text-lg">Selling Price (70% markup):</span>
+                  <span className="text-3xl font-bold text-green-300">₹{results.sellingPrice.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
+                  <span className="text-sm opacity-90">Per Piece:</span>
+                  <span className="text-xl font-semibold">₹{results.perPieceCost.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
-                <span className="text-sm opacity-90">Per Piece:</span>
-                <span className="text-xl font-semibold">₹{results.perPieceCost.toFixed(2)}</span>
+              
+              {/* PDF Download Button */}
+              <div className="pt-4 border-t border-primary-foreground/20">
+                <Button 
+                  onClick={generatePDF}
+                  className="w-full bg-white text-primary hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+                  size="lg"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  Download PDF Quote
+                </Button>
               </div>
             </div>
           </CardContent>

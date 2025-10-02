@@ -206,69 +206,41 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     const today = new Date();
     doc.text(`Generated on: ${today.toLocaleDateString('en-IN')}`, 20, 45);
     doc.text(`Quote Ref: BX-${today.getTime().toString().slice(-6)}`, 20, 55);
+    doc.text(`Customer: Professional Client`, 20, 65);
     
     // Specifications section
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text('BOX SPECIFICATIONS:', 20, 75);
+    doc.text('BOX SPECIFICATIONS:', 20, 85);
     
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
-    doc.text(`Dimensions:`, 30, 90);
-    doc.text(`${length}" x ${width}" x ${height}"`, 120, 90);
+    doc.text(`Dimensions:`, 30, 100);
+    doc.text(`${length}" x ${width}" x ${height}"`, 120, 100);
     
-    doc.text(`Quantity:`, 30, 105);
-    doc.text(`${quantity.toLocaleString('en-IN')} boxes`, 120, 105);
+    doc.text(`Quantity:`, 30, 115);
+    doc.text(`${quantity.toLocaleString('en-IN')} boxes`, 120, 115);
     
-    doc.text(`Board Thickness:`, 30, 120);
-    doc.text(`${boardThickness}`, 120, 120);
+    doc.text(`Board Thickness:`, 30, 130);
+    doc.text(`${boardThickness}`, 120, 130);
     
-    doc.text(`Paper Type:`, 30, 135);
-    doc.text(`${paperType}`, 120, 135);
+    doc.text(`Paper Type:`, 30, 145);
+    doc.text(`${paperType}`, 120, 145);
     
-    doc.text(`Board Flat Size:`, 30, 150);
-    doc.text(`${results.boardFlatLength}" x ${results.boardFlatWidth}"`, 120, 150);
+    doc.text(`Board Flat Size:`, 30, 160);
+    doc.text(`${results.boardFlatLength}" x ${results.boardFlatWidth}"`, 120, 160);
     
-    doc.text(`Boxes per Sheet:`, 30, 165);
-    doc.text(`${results.boardUPS}`, 120, 165);
+    doc.text(`Boxes per Sheet:`, 30, 175);
+    doc.text(`${results.boardUPS}`, 120, 175);
     
-    doc.text(`Board Sheets Needed:`, 30, 180);
-    doc.text(`${results.boardQty}`, 120, 180);
+    doc.text(`Board Sheets Needed:`, 30, 190);
+    doc.text(`${results.boardQty}`, 120, 190);
     
-    doc.text(`Paper Sheets Needed:`, 30, 195);
-    doc.text(`${results.paperSheetsNeeded}`, 120, 195);
-    
-    // Special Features section
-    let yPos = 215;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('SPECIAL FEATURES:', 20, yPos);
-    yPos += 15;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(60, 60, 60);
-    if (includeFoiling) {
-      doc.text(`• Foiling:`, 30, yPos);
-      doc.text(`Rs. ${results.foilingCost.toLocaleString('en-IN')}`, 120, yPos);
-      yPos += 12;
-    }
-    if (includeEmbossing) {
-      doc.text(`• Embossing:`, 30, yPos);
-      doc.text(`Rs. ${results.embossingCost.toLocaleString('en-IN')}`, 120, yPos);
-      yPos += 12;
-    }
-    if (includeSpotUV) {
-      doc.text(`• Spot UV:`, 30, yPos);
-      doc.text(`Rs. ${results.spotUVCost.toLocaleString('en-IN')}`, 120, yPos);
-      yPos += 12;
-    }
-    if (!includeFoiling && !includeEmbossing && !includeSpotUV) {
-      doc.text('• No special features selected', 30, yPos);
-      yPos += 12;
-    }
+    doc.text(`Paper Sheets Needed:`, 30, 205);
+    doc.text(`${results.paperSheetsNeeded}`, 120, 205);
     
     // Cost Breakdown section
-    yPos += 10;
+    let yPos = 225;
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.text('COST BREAKDOWN:', 20, yPos);
@@ -288,6 +260,24 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     doc.text(`Rs. ${results.printingCost.toLocaleString('en-IN')}`, 120, yPos);
     yPos += 12;
     
+    if (includeFoiling) {
+      doc.text(`Foiling Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.foilingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    if (includeEmbossing) {
+      doc.text(`Embossing Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.embossingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    if (includeSpotUV) {
+      doc.text(`Spot UV Cost:`, 30, yPos);
+      doc.text(`Rs. ${results.spotUVCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
     doc.text(`Box Making Cost:`, 30, yPos);
     doc.text(`Rs. ${results.boxMakingCost.toLocaleString('en-IN')}`, 120, yPos);
     yPos += 12;
@@ -304,10 +294,17 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     doc.text(`Rs. ${results.totalPrice.toLocaleString('en-IN')}`, 120, yPos);
     yPos += 20;
     
+    // Selling Price (same as total for boxes since no markup specified)
+    doc.setFontSize(16);
+    doc.setTextColor(0, 150, 0);
+    doc.text('SELLING PRICE:', 20, yPos);
+    doc.text(`Rs. ${results.totalPrice.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 20;
+    
     // Per box cost
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text('Per Box Cost:', 20, yPos);
+    doc.text('Per Box Price:', 20, yPos);
     doc.text(`Rs. ${results.perBoxPrice.toFixed(2)}`, 120, yPos);
     
     // Footer with better formatting

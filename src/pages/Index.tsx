@@ -184,7 +184,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="brochure" className="mt-0">
-            <BrochureCalculator pricing={brochurePricing} />
+            <BrochureCalculator pricing={brochurePricing} userName={userName} />
           </TabsContent>
 
           <TabsContent value="card" className="mt-0">
