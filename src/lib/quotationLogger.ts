@@ -1,133 +1,122 @@
-// Quotation Logging System
-export interface QuotationLog {
+/**
+ * Quotation Logger for saving and managing quotations
+ * Stores quotations in localStorage with timestamps and generates unique references
+ */
+
+export interface QuotationData {
   id: string;
-  timestamp: string;
   userName: string;
-  calculatorType: 'box' | 'brochure' | 'digital-print' | 'paper-bag';
-  specifications: Record<string, any>;
+  calculatorType: 'box' | 'digital-print' | 'brochure' | 'paper-bag';
+  specifications: any;
   pricing: {
     baseAmount: number;
     gstAmount: number;
     shippingCharges: number;
     totalAmount: number;
   };
-  quoteReference: string;
+  timestamp: string;
+  dateCreated: Date;
 }
 
-export class QuotationLogger {
-  private static readonly STORAGE_KEY = 'quotation_logs';
+class QuotationLoggerClass {
+  private storageKey = 'quotationHistory';
 
-  // Save quotation to localStorage
-  static saveQuotation(quotation: Omit<QuotationLog, 'id' | 'timestamp' | 'quoteReference'>): string {
-    const id = this.generateId();
-    const timestamp = new Date().toISOString();
-    const quoteReference = this.generateQuoteReference(quotation.calculatorType);
-    
-    const fullQuotation: QuotationLog = {
-      id,
-      timestamp,
-      quoteReference,
-      ...quotation
+  public saveQuotation(data: Omit<QuotationData, 'id' | 'timestamp' | 'dateCreated'>): string {
+    const now = new Date();
+    const quotation: QuotationData = {
+      ...data,
+      id: this.generateQuoteRef(data.calculatorType),
+      timestamp: now.toISOString(),
+      dateCreated: now
     };
 
-    const existingLogs = this.getAllQuotations();
-    existingLogs.unshift(fullQuotation); // Add to beginning
-    
-    // Keep only last 100 quotations to prevent storage overflow
-    const limitedLogs = existingLogs.slice(0, 100);
-    
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(limitedLogs));
-    
-    console.log('Quotation saved:', {
-      reference: quoteReference,
-      timestamp: new Date(timestamp).toLocaleString('en-IN'),
-      type: quotation.calculatorType,
-      total: quotation.pricing.totalAmount
-    });
-    
-    return quoteReference;
+    const history = this.getQuotationHistory();
+    history.unshift(quotation); // Add to beginning of array
+
+    // Keep only last 100 quotations
+    if (history.length > 100) {
+      history.splice(100);
+    }
+
+    localStorage.setItem(this.storageKey, JSON.stringify(history));
+    return quotation.id;
   }
 
-  // Get all quotations
-  static getAllQuotations(): QuotationLog[] {
+  public getQuotationHistory(): QuotationData[] {
+    const stored = localStorage.getItem(this.storageKey);
+    if (!stored) return [];
+
     try {
-      const logs = localStorage.getItem(this.STORAGE_KEY);
-      return logs ? JSON.parse(logs) : [];
+      const parsed = JSON.parse(stored);
+      return parsed.map((item: any) => ({
+        ...item,
+        dateCreated: new Date(item.timestamp)
+      }));
     } catch (error) {
-      console.error('Error reading quotation logs:', error);
+      console.error('Error parsing quotation history:', error);
       return [];
     }
   }
 
-  // Get quotations by user
-  static getQuotationsByUser(userName: string): QuotationLog[] {
-    return this.getAllQuotations().filter(log => log.userName === userName);
+  public getQuotationById(id: string): QuotationData | null {
+    const history = this.getQuotationHistory();
+    return history.find(q => q.id === id) || null;
   }
 
-  // Get quotations by type
-  static getQuotationsByType(type: QuotationLog['calculatorType']): QuotationLog[] {
-    return this.getAllQuotations().filter(log => log.calculatorType === type);
-  }
-
-  // Get quotation by reference
-  static getQuotationByReference(reference: string): QuotationLog | null {
-    return this.getAllQuotations().find(log => log.quoteReference === reference) || null;
-  }
-
-  // Generate unique ID
-  private static generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  // Generate quote reference
-  private static generateQuoteReference(type: QuotationLog['calculatorType']): string {
-    const prefixes = {
-      'box': 'BX',
-      'brochure': 'BR',
-      'digital-print': 'DP',
-      'paper-bag': 'PB'
-    };
+  public deleteQuotation(id: string): boolean {
+    const history = this.getQuotationHistory();
+    const filtered = history.filter(q => q.id !== id);
     
-    const prefix = prefixes[type];
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.random().toString(36).substr(2, 3).toUpperCase();
-    
-    return `${prefix}-${timestamp}-${random}`;
+    if (filtered.length !== history.length) {
+      localStorage.setItem(this.storageKey, JSON.stringify(filtered));
+      return true;
+    }
+    return false;
   }
 
-  // Export quotations as JSON
-  static exportQuotations(): string {
-    const logs = this.getAllQuotations();
-    return JSON.stringify(logs, null, 2);
+  public clearHistory(): void {
+    localStorage.removeItem(this.storageKey);
   }
 
-  // Clear all quotations (admin function)
-  static clearAllQuotations(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-    console.log('All quotation logs cleared');
+  public exportHistory(): string {
+    const history = this.getQuotationHistory();
+    return JSON.stringify(history, null, 2);
   }
 
-  // Get statistics
-  static getStatistics() {
-    const logs = this.getAllQuotations();
-    const today = new Date().toDateString();
-    const thisMonth = new Date().getMonth();
-    const thisYear = new Date().getFullYear();
+  public getStatistics() {
+    const history = this.getQuotationHistory();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     return {
-      total: logs.length,
-      today: logs.filter(log => new Date(log.timestamp).toDateString() === today).length,
-      thisMonth: logs.filter(log => {
-        const logDate = new Date(log.timestamp);
-        return logDate.getMonth() === thisMonth && logDate.getFullYear() === thisYear;
-      }).length,
-      byType: {
-        box: logs.filter(log => log.calculatorType === 'box').length,
-        brochure: logs.filter(log => log.calculatorType === 'brochure').length,
-        digitalPrint: logs.filter(log => log.calculatorType === 'digital-print').length,
-        paperBag: logs.filter(log => log.calculatorType === 'paper-bag').length,
-      },
-      totalRevenue: logs.reduce((sum, log) => sum + log.pricing.totalAmount, 0)
+      total: history.length,
+      today: history.filter(q => q.dateCreated >= today).length,
+      thisMonth: history.filter(q => q.dateCreated >= thisMonth).length,
+      totalValue: history.reduce((sum, q) => sum + q.pricing.totalAmount, 0),
+      byCalculator: {
+        box: history.filter(q => q.calculatorType === 'box').length,
+        digitalPrint: history.filter(q => q.calculatorType === 'digital-print').length,
+        brochure: history.filter(q => q.calculatorType === 'brochure').length,
+        paperBag: history.filter(q => q.calculatorType === 'paper-bag').length,
+      }
     };
   }
+
+  private generateQuoteRef(calculatorType: string): string {
+    const prefixes = {
+      'box': 'BX',
+      'digital-print': 'DP',
+      'brochure': 'BR',
+      'paper-bag': 'PB'
+    };
+
+    const prefix = prefixes[calculatorType as keyof typeof prefixes] || 'QT';
+    const timestamp = Date.now().toString();
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    
+    return `${prefix}-${timestamp.slice(-6)}${random}`;
+  }
 }
+
+export const QuotationLogger = new QuotationLoggerClass();

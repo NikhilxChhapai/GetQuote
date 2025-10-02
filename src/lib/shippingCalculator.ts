@@ -1,202 +1,185 @@
-// Shipping Calculator for India
+/**
+ * Shipping Calculator for Indian Market
+ * Handles GST calculations and shipping charges based on weight and zones
+ */
+
+export interface ShippingZone {
+  name: string;
+  baseRate: number; // per kg
+  freeShippingThreshold: number; // minimum order value for free shipping
+  deliveryDays: string;
+}
+
 export interface ShippingSettings {
-  baseRate: number; // Base rate per kg
-  freeShippingThreshold: number; // Free shipping above this amount
-  weightMultipliers: {
-    [key: string]: number; // Different rates for different product types
-  };
+  gstRate: number;
   zones: {
-    local: { rate: number; description: string }; // Same city
-    regional: { rate: number; description: string }; // Same state
-    national: { rate: number; description: string }; // Other states
+    local: ShippingZone;
+    regional: ShippingZone;
+    national: ShippingZone;
+  };
+  weightCalculation: {
+    [productType: string]: {
+      baseWeight: number; // kg per unit
+      packagingWeight: number; // additional packaging weight
+    };
   };
 }
 
-export interface GSTSettings {
-  rate: number; // GST percentage (default 18%)
-  hsn: {
-    [key: string]: string; // HSN codes for different products
-  };
+export interface ShippingCalculation {
+  baseAmount: number;
+  gstAmount: number;
+  gstRate: number;
+  shippingCharges: number;
+  shippingWeight: number;
+  totalAmount: number;
+  isFreeShipping: boolean;
+  deliveryDays: string;
+  zone: string;
 }
 
-export class ShippingCalculator {
-  private static readonly SHIPPING_SETTINGS_KEY = 'shipping_settings';
-  private static readonly GST_SETTINGS_KEY = 'gst_settings';
+class ShippingCalculatorClass {
+  private settings: ShippingSettings;
 
-  // Default shipping settings
-  private static defaultShippingSettings: ShippingSettings = {
-    baseRate: 50, // Rs. 50 per kg
-    freeShippingThreshold: 5000, // Free shipping above Rs. 5000
-    weightMultipliers: {
-      'box': 1.2, // Boxes are bulky
-      'brochure': 0.8, // Brochures are light
-      'digital-print': 0.6, // Digital prints are very light
-      'paper-bag': 1.0, // Standard weight
-    },
-    zones: {
-      local: { rate: 0.8, description: 'Same City' },
-      regional: { rate: 1.0, description: 'Same State' },
-      national: { rate: 1.5, description: 'Other States' },
-    }
-  };
-
-  // Default GST settings
-  private static defaultGSTSettings: GSTSettings = {
-    rate: 18, // 18% GST
-    hsn: {
-      'box': '4819', // Paper packaging
-      'brochure': '4911', // Printed matter
-      'digital-print': '4911', // Printed matter
-      'paper-bag': '4819', // Paper packaging
-    }
-  };
-
-  // Get shipping settings
-  static getShippingSettings(): ShippingSettings {
-    try {
-      const settings = localStorage.getItem(this.SHIPPING_SETTINGS_KEY);
-      return settings ? JSON.parse(settings) : this.defaultShippingSettings;
-    } catch (error) {
-      console.error('Error reading shipping settings:', error);
-      return this.defaultShippingSettings;
-    }
+  constructor() {
+    // Load settings from localStorage or use defaults
+    this.settings = this.loadSettings();
   }
 
-  // Save shipping settings
-  static saveShippingSettings(settings: ShippingSettings): void {
-    localStorage.setItem(this.SHIPPING_SETTINGS_KEY, JSON.stringify(settings));
-  }
-
-  // Get GST settings
-  static getGSTSettings(): GSTSettings {
-    try {
-      const settings = localStorage.getItem(this.GST_SETTINGS_KEY);
-      return settings ? JSON.parse(settings) : this.defaultGSTSettings;
-    } catch (error) {
-      console.error('Error reading GST settings:', error);
-      return this.defaultGSTSettings;
-    }
-  }
-
-  // Save GST settings
-  static saveGSTSettings(settings: GSTSettings): void {
-    localStorage.setItem(this.GST_SETTINGS_KEY, JSON.stringify(settings));
-  }
-
-  // Calculate estimated weight based on product type and specifications
-  static calculateWeight(
-    productType: 'box' | 'brochure' | 'digital-print' | 'paper-bag',
-    specifications: any
-  ): number {
-    switch (productType) {
-      case 'box':
-        // Weight = (L × W × H × quantity × board thickness factor) / 1000
-        const { length = 12, width = 8, height = 3, quantity = 300, boardThickness = '2.4mm' } = specifications;
-        const thicknessFactor = parseFloat(boardThickness.replace('mm', '')) * 0.1;
-        return Math.max(0.5, (length * width * height * quantity * thicknessFactor) / 10000);
-
-      case 'brochure':
-        // Weight = (pages × quantity × paper GSM) / 10000
-        const { pages = 4, quantity: brochureQty = 1000, paperGSM = '170' } = specifications;
-        const gsm = parseInt(paperGSM.replace('gsm', ''));
-        return Math.max(0.2, (pages * brochureQty * gsm) / 50000);
-
-      case 'digital-print':
-        // Weight = (width × height × quantity × paper weight) / 10000
-        const { width: cardWidth = 3.5, height: cardHeight = 2, quantity: cardQty = 500, paperType = '350 matt' } = specifications;
-        const paperWeight = parseInt(paperType.split(' ')[0]) || 350;
-        return Math.max(0.1, (cardWidth * cardHeight * cardQty * paperWeight) / 100000);
-
-      case 'paper-bag':
-        // Weight = (size factor × quantity × paper GSM) / 1000
-        const { size = 'medium', quantity: bagQty = 500, paperGSM: bagGSM = '120' } = specifications;
-        const sizeFactor = size === 'small' ? 0.5 : size === 'medium' ? 1.0 : 1.5;
-        const bagGSMValue = parseInt(bagGSM.toString()) || 120;
-        return Math.max(0.3, (sizeFactor * bagQty * bagGSMValue) / 5000);
-
-      default:
-        return 1.0; // Default 1kg
-    }
-  }
-
-  // Calculate shipping charges
-  static calculateShippingCharges(
-    productType: 'box' | 'brochure' | 'digital-print' | 'paper-bag',
-    specifications: any,
-    zone: 'local' | 'regional' | 'national' = 'national',
-    baseAmount: number
-  ): { weight: number; charges: number; isFree: boolean } {
-    const settings = this.getShippingSettings();
-    
-    // Check for free shipping
-    if (baseAmount >= settings.freeShippingThreshold) {
-      return {
-        weight: this.calculateWeight(productType, specifications),
-        charges: 0,
-        isFree: true
-      };
+  private loadSettings(): ShippingSettings {
+    const savedSettings = localStorage.getItem('shippingSettings');
+    if (savedSettings) {
+      return JSON.parse(savedSettings);
     }
 
-    const weight = this.calculateWeight(productType, specifications);
-    const weightMultiplier = settings.weightMultipliers[productType] || 1.0;
-    const zoneMultiplier = settings.zones[zone].rate;
-    
-    const charges = Math.ceil(weight * weightMultiplier * settings.baseRate * zoneMultiplier);
-    
+    // Default settings for Indian market
     return {
-      weight: Math.round(weight * 100) / 100, // Round to 2 decimal places
-      charges,
-      isFree: false
-    };
-  }
-
-  // Calculate GST
-  static calculateGST(baseAmount: number, productType?: string): { gstAmount: number; gstRate: number; hsnCode: string } {
-    const settings = this.getGSTSettings();
-    const gstAmount = Math.round((baseAmount * settings.rate) / 100);
-    const hsnCode = productType ? settings.hsn[productType] || '4911' : '4911';
-    
-    return {
-      gstAmount,
-      gstRate: settings.rate,
-      hsnCode
-    };
-  }
-
-  // Calculate total with GST and shipping
-  static calculateTotal(
-    baseAmount: number,
-    productType: 'box' | 'brochure' | 'digital-print' | 'paper-bag',
-    specifications: any,
-    zone: 'local' | 'regional' | 'national' = 'national'
-  ) {
-    const shipping = this.calculateShippingCharges(productType, specifications, zone, baseAmount);
-    const gst = this.calculateGST(baseAmount, productType);
-    
-    const totalAmount = baseAmount + gst.gstAmount + shipping.charges;
-    
-    return {
-      baseAmount,
-      gstAmount: gst.gstAmount,
-      gstRate: gst.gstRate,
-      hsnCode: gst.hsnCode,
-      shippingCharges: shipping.charges,
-      shippingWeight: shipping.weight,
-      shippingZone: zone,
-      isFreeShipping: shipping.isFree,
-      totalAmount,
-      breakdown: {
-        subtotal: baseAmount,
-        gst: gst.gstAmount,
-        shipping: shipping.charges,
-        total: totalAmount
+      gstRate: 18, // 18% GST for printing services
+      zones: {
+        local: {
+          name: 'Local (Same City)',
+          baseRate: 25, // ₹25 per kg
+          freeShippingThreshold: 2000, // Free shipping above ₹2000
+          deliveryDays: '1-2 Days'
+        },
+        regional: {
+          name: 'Regional (Same State)',
+          baseRate: 35, // ₹35 per kg
+          freeShippingThreshold: 3000, // Free shipping above ₹3000
+          deliveryDays: '2-3 Days'
+        },
+        national: {
+          name: 'National (Other States)',
+          baseRate: 50, // ₹50 per kg
+          freeShippingThreshold: 5000, // Free shipping above ₹5000
+          deliveryDays: '4-7 Days'
+        }
+      },
+      weightCalculation: {
+        'box': {
+          baseWeight: 0.5, // 500g per box
+          packagingWeight: 0.2 // 200g packaging
+        },
+        'digital-print': {
+          baseWeight: 0.001, // 1g per piece (business cards)
+          packagingWeight: 0.1 // 100g packaging
+        },
+        'brochure': {
+          baseWeight: 0.05, // 50g per brochure
+          packagingWeight: 0.15 // 150g packaging
+        },
+        'paper-bag': {
+          baseWeight: 0.1, // 100g per bag
+          packagingWeight: 0.2 // 200g packaging
+        }
       }
     };
   }
 
-  // Reset to default settings
-  static resetToDefaults(): void {
-    this.saveShippingSettings(this.defaultShippingSettings);
-    this.saveGSTSettings(this.defaultGSTSettings);
+  public saveSettings(settings: ShippingSettings): void {
+    this.settings = settings;
+    localStorage.setItem('shippingSettings', JSON.stringify(settings));
+  }
+
+  public getSettings(): ShippingSettings {
+    return { ...this.settings };
+  }
+
+  public calculateWeight(
+    productType: string, 
+    quantity: number, 
+    specifications?: any
+  ): number {
+    const weightConfig = this.settings.weightCalculation[productType];
+    if (!weightConfig) {
+      return 1; // Default 1kg if product type not found
+    }
+
+    let totalWeight = (quantity * weightConfig.baseWeight) + weightConfig.packagingWeight;
+
+    // Special calculations for different product types
+    if (productType === 'box' && specifications) {
+      // Box weight depends on dimensions and board thickness
+      const { length = 12, width = 8, height = 3, boardThickness = '2.4mm' } = specifications;
+      const thicknessMultiplier = parseFloat(boardThickness) / 2.4; // relative to 2.4mm
+      const sizeMultiplier = (length * width * height) / (12 * 8 * 3); // relative to standard size
+      totalWeight = totalWeight * thicknessMultiplier * sizeMultiplier;
+    }
+
+    if (productType === 'digital-print' && specifications) {
+      // Weight depends on paper type and dimensions
+      const { paperType = '350 matt' } = specifications;
+      const gsmMatch = paperType.match(/(\d+)/);
+      const gsm = gsmMatch ? parseInt(gsmMatch[1]) : 350;
+      const gsmMultiplier = gsm / 350; // relative to 350 GSM
+      totalWeight = totalWeight * gsmMultiplier;
+    }
+
+    // Minimum weight of 0.1kg
+    return Math.max(totalWeight, 0.1);
+  }
+
+  public calculateTotal(
+    baseAmount: number,
+    productType: string,
+    specifications: any,
+    zone: 'local' | 'regional' | 'national'
+  ): ShippingCalculation {
+    const zoneConfig = this.settings.zones[zone];
+    const weight = this.calculateWeight(productType, specifications.quantity || 1, specifications);
+    
+    // Calculate GST
+    const gstAmount = Math.round((baseAmount * this.settings.gstRate / 100) * 100) / 100;
+    
+    // Calculate shipping charges
+    let shippingCharges = Math.ceil(weight * zoneConfig.baseRate);
+    const isFreeShipping = baseAmount >= zoneConfig.freeShippingThreshold;
+    
+    if (isFreeShipping) {
+      shippingCharges = 0;
+    }
+
+    const totalAmount = baseAmount + gstAmount + shippingCharges;
+
+    return {
+      baseAmount: Math.round(baseAmount * 100) / 100,
+      gstAmount,
+      gstRate: this.settings.gstRate,
+      shippingCharges,
+      shippingWeight: Math.round(weight * 100) / 100,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+      isFreeShipping,
+      deliveryDays: zoneConfig.deliveryDays,
+      zone: zoneConfig.name
+    };
+  }
+
+  public getZoneOptions() {
+    return [
+      { value: 'local', label: `${this.settings.zones.local.name} - ${this.settings.zones.local.deliveryDays}` },
+      { value: 'regional', label: `${this.settings.zones.regional.name} - ${this.settings.zones.regional.deliveryDays}` },
+      { value: 'national', label: `${this.settings.zones.national.name} - ${this.settings.zones.national.deliveryDays}` }
+    ];
   }
 }
+
+export const ShippingCalculator = new ShippingCalculatorClass();
