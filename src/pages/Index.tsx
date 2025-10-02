@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Calculator } from "@/components/Calculator";
 import { BrochureCalculator } from "@/components/BrochureCalculator";
 import { BusinessCardCalculator } from "@/components/BusinessCardCalculator";
-import { PaperBagCalculator } from "@/components/PaperBagCalculator";
+import { PaperBagCalculator } from "@/components/PaperBagCalculatorNew";
 import { BoxPricingSettings } from "@/components/BoxPricingSettings";
 import { BrochurePricingSettings } from "@/components/BrochurePricingSettings";
 import { BusinessCardPricingSettings } from "@/components/BusinessCardPricingSettings";
@@ -192,7 +192,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="paperbag" className="mt-0">
-            <PaperBagCalculator pricing={paperBagPricing} userName={userName} />
+            <PaperBagCalculator userName={userName} />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-0">
