@@ -37,12 +37,16 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     boardUPS: 0,
     boardQty: 0,
     totalBoardPrice: 0,
+    paperFlatLength: 0,
+    paperFlatWidth: 0,
+    paperUPS: 0,
     paperSheetsNeeded: 0,
     totalPaperPrice: 0,
     printingCost: 0,
     foilingCost: 0,
     embossingCost: 0,
     spotUVCost: 0,
+    boxMakingCost: 0,
     totalPrice: 0,
     perBoxPrice: 0,
   });
@@ -52,35 +56,119 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
   }, [length, width, height, quantity, boardThickness, paperType, includeFoiling, includeEmbossing, includeSpotUV, pricing]);
 
   const calculatePrice = () => {
-    // Board flat dimensions (add height × 2 for folding)
-    const boardFlatLength = length + height * 2;
-    const boardFlatWidth = width + height * 2;
+    // RIGID BOX CALCULATIONS - Based on provided Excel formulas
+    
+    // Board flat dimensions calculation (Length + Height*2, Width + Height*2)
+    const boardFlatLength = length + (height * 2);
+    const boardFlatWidth = width + (height * 2);
 
-    // Calculate board UPS (units per sheet) - standard sheet 42×60 inches
-    const sheetArea = 42 * 60;
-    const boxArea = boardFlatLength * boardFlatWidth;
-    const boardUPS = Math.floor(sheetArea / boxArea);
+    // Calculate board UPS (units per sheet) - standard board sheet 31×41 inches
+    // Formula: MAX(INT(31/boardFlatLength)*INT(41/boardFlatWidth), INT(31/boardFlatWidth)*INT(41/boardFlatLength))
+    const boardSheetLength = 31;
+    const boardSheetWidth = 41;
+    const boardUPS = Math.max(
+      Math.floor(boardSheetLength / boardFlatLength) * Math.floor(boardSheetWidth / boardFlatWidth),
+      Math.floor(boardSheetLength / boardFlatWidth) * Math.floor(boardSheetWidth / boardFlatLength)
+    );
 
-    // Board quantity needed
-    const boardQty = Math.ceil(quantity / boardUPS);
+    // Calculate board quantity needed - Formula: CEILING(quantity/boardUPS*2)+15
+    const boardQty = Math.ceil((quantity / boardUPS) * 2) + 15;
 
-    // Board price
-    const boardPricePerSheet = pricing.boardPrices[boardThickness] || 60;
+    // Get board price per sheet based on thickness
+    const getBoardPrice = (thickness: string) => {
+      switch (thickness) {
+        case "1.7mm": return 42;
+        case "1.9mm": return 50;
+        case "2.4mm": return 60;
+        case "2.9mm": return 73;
+        default: return 60;
+      }
+    };
+    const boardPricePerSheet = getBoardPrice(boardThickness);
     const totalBoardPrice = boardQty * boardPricePerSheet;
 
-    // Paper sheets calculation (typically 2.5 sheets per box for wrapping)
-    const paperSheetsNeeded = Math.ceil(quantity * 2.5);
-    const paperPricePerSheet = pricing.paperPrices[paperType] || 14;
+    // Paper calculations (add 3 inches to each dimension for wrapping)
+    const paperFlatLength = boardFlatLength + 3;
+    const paperFlatWidth = boardFlatWidth + 3;
+
+    // Calculate paper UPS - standard paper sheet 28×40 inches
+    // Formula: MAX(INT(28/paperFlatLength)*INT(40/paperFlatWidth), INT(28/paperFlatWidth)*INT(40/paperFlatLength))
+    const paperSheetLength = 28;
+    const paperSheetWidth = 40;
+    const paperUPS = Math.max(
+      Math.floor(paperSheetLength / paperFlatLength) * Math.floor(paperSheetWidth / paperFlatWidth),
+      Math.floor(paperSheetLength / paperFlatWidth) * Math.floor(paperSheetWidth / paperFlatLength)
+    );
+
+    // Calculate paper sheets needed - Formula: CEILING(quantity/paperUPS*2.5)+100
+    const paperSheetsNeeded = Math.ceil((quantity / paperUPS) * 2.5) + 100;
+
+    // Get paper price per sheet based on type
+    const getPaperPrice = (type: string) => {
+      switch (type) {
+        case "matt lam": return 14;
+        case "canvas": return 52;
+        case "color council": return 30;
+        case "keycolour": return 60;
+        case "plike": return 145;
+        case "suede": return 180;
+        default: return 14;
+      }
+    };
+    const paperPricePerSheet = getPaperPrice(paperType);
     const totalPaperPrice = paperSheetsNeeded * paperPricePerSheet;
 
-    // Additional costs
-    const printingCost = pricing.printingBase;
-    const foilingCost = includeFoiling ? pricing.foilingBase : 0;
-    const embossingCost = includeEmbossing ? pricing.embossingBase : 0;
-    const spotUVCost = includeSpotUV ? pricing.spotUVBase : 0;
+    // Printing cost calculation based on paper sheets
+    const getPrintingCost = (sheets: number) => {
+      if (sheets <= 1000) return 3000;
+      if (sheets <= 2000) return 4000;
+      if (sheets <= 3000) return 5000;
+      return sheets * 1.5;
+    };
+    const printingCost = getPrintingCost(paperSheetsNeeded);
 
-    // Total calculation
-    const totalPrice = totalBoardPrice + totalPaperPrice + printingCost + foilingCost + embossingCost + spotUVCost;
+    // Foiling cost calculation
+    const getFoilingCost = (sheets: number) => {
+      if (sheets <= 1000) return 10000;
+      if (sheets <= 2000) return 16000;
+      return 1000 * 6;
+    };
+    const foilingCost = includeFoiling ? getFoilingCost(paperSheetsNeeded) : 0;
+
+    // Embossing cost calculation
+    const getEmbossingCost = (sheets: number) => {
+      if (sheets <= 1000) return 15000;
+      if (sheets <= 2000) return 20000;
+      return 1000 * 8;
+    };
+    const embossingCost = includeEmbossing ? getEmbossingCost(paperSheetsNeeded) : 0;
+
+    // Spot UV cost calculation
+    const getSpotUVCost = (sheets: number) => {
+      if (sheets <= 1000) return 12000;
+      if (sheets <= 2000) return 15000;
+      return 1000 * 6;
+    };
+    const spotUVCost = includeSpotUV ? getSpotUVCost(paperSheetsNeeded) : 0;
+
+    // Box making cost calculation based on maximum dimension
+    // Formula: IF(MAX(length,width)<8,40, IF(MAX(length,width)<10,50, IF(MAX(length,width)<12,60, IF(MAX(length,width)<14,75, IF(MAX(length,width)<20,100)))))*quantity
+    const getBoxMakingCost = (maxDimension: number, qty: number) => {
+      let costPerBox = 100; // default for >20
+      if (maxDimension < 8) costPerBox = 40;
+      else if (maxDimension < 10) costPerBox = 50;
+      else if (maxDimension < 12) costPerBox = 60;
+      else if (maxDimension < 14) costPerBox = 75;
+      else if (maxDimension < 20) costPerBox = 100;
+      
+      return costPerBox * qty;
+    };
+    const maxDimension = Math.max(length, width);
+    const boxMakingCost = getBoxMakingCost(maxDimension, quantity);
+
+    // Total calculation - Formula: (totalBoardPrice + totalPaperPrice + printingCost + foilingCost + embossingCost + spotUVCost + boxMakingCost) * 2
+    const subtotal = totalBoardPrice + totalPaperPrice + printingCost + foilingCost + embossingCost + spotUVCost + boxMakingCost;
+    const totalPrice = subtotal * 2; // Rigid boxes require double the processing cost
     const perBoxPrice = totalPrice / quantity;
 
     setResults({
@@ -89,12 +177,16 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
       boardUPS,
       boardQty,
       totalBoardPrice,
+      paperFlatLength,
+      paperFlatWidth,
+      paperUPS,
       paperSheetsNeeded,
       totalPaperPrice,
       printingCost,
       foilingCost,
       embossingCost,
       spotUVCost,
+      boxMakingCost,
       totalPrice,
       perBoxPrice,
     });
@@ -194,6 +286,10 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     
     doc.text(`Printing Cost:`, 30, yPos);
     doc.text(`Rs. ${results.printingCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Box Making Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.boxMakingCost.toLocaleString('en-IN')}`, 120, yPos);
     yPos += 12;
     
     // Draw a line before total
@@ -431,6 +527,10 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                   <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
                 </div>
               )}
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Box Making</span>
+                <span className="font-medium">₹{results.boxMakingCost.toFixed(2)}</span>
+              </div>
             </div>
 
             <Separator />
@@ -468,21 +568,60 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Flat Board Size</span>
-              <span className="font-medium">{results.boardFlatLength}" × {results.boardFlatWidth}"</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Units per Sheet (UPS)</span>
-              <span className="font-medium">{results.boardUPS}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Board Sheets Required</span>
-              <span className="font-medium">{results.boardQty}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Paper Sheets Required</span>
-              <span className="font-medium">{results.paperSheetsNeeded}</span>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <h4 className="font-semibold text-primary mb-2">Board Specifications</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Flat Board Size:</span>
+                    <span className="font-medium">{results.boardFlatLength}" × {results.boardFlatWidth}"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Board UPS:</span>
+                    <span className="font-medium">{results.boardUPS} boxes/sheet</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Board Sheets Required:</span>
+                    <span className="font-medium">{results.boardQty} sheets</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <h4 className="font-semibold text-blue-600 mb-2">Paper Specifications</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Paper Flat Size:</span>
+                    <span className="font-medium">{results.paperFlatLength}" × {results.paperFlatWidth}"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Paper UPS:</span>
+                    <span className="font-medium">{results.paperUPS} pieces/sheet</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Paper Sheets Required:</span>
+                    <span className="font-medium">{results.paperSheetsNeeded} sheets</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-accent/10 rounded-lg">
+                <h4 className="font-semibold text-accent mb-2">Production Details</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Max Dimension:</span>
+                    <span className="font-medium">{Math.max(length, width)}"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Box Type:</span>
+                    <span className="font-medium">Rigid Box</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Complexity Factor:</span>
+                    <span className="font-medium">2x (Premium)</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
