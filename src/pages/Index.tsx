@@ -7,6 +7,7 @@ import { BoxPricingSettings } from "@/components/BoxPricingSettings";
 import { BrochurePricingSettings } from "@/components/BrochurePricingSettings";
 import { BusinessCardPricingSettings } from "@/components/BusinessCardPricingSettings";
 import { PaperBagPricingSettings } from "@/components/PaperBagPricingSettings";
+import { QuotationHistory } from "@/components/QuotationHistory";
 import { BoxGuide } from "@/components/BoxGuide";
 import { BrochureGuide } from "@/components/BrochureGuide";
 import { BusinessCardGuide } from "@/components/BusinessCardGuide";
@@ -17,7 +18,7 @@ import { HelpDialog } from "@/components/HelpDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag } from "lucide-react";
+import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag, Quote, Sparkles, Printer, Package, BookOpen, Zap, Download } from "lucide-react";
 import { sbs2SheetsPricingData } from "@/data/paperBagPricing";
 
 const Index = () => {
@@ -117,21 +118,29 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[var(--gradient-subtle)] transition-colors duration-300">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-[var(--shadow-card)]">
-        <div className="container mx-auto px-4 lg:px-6 py-4">
+      <header className="border-b border-border/20 bg-gradient-to-r from-card/95 via-card/90 to-card/95 backdrop-blur-xl sticky top-0 z-50 shadow-lg shadow-primary/5">
+        <div className="container mx-auto px-4 lg:px-6 py-5">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-xl bg-[var(--gradient-primary)] flex items-center justify-center shadow-[var(--shadow-elegant)] hover:scale-105 transition-transform">
-                <CalculatorIcon className="h-6 w-6 text-primary-foreground" />
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-xl shadow-primary/25 hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/30">
+                  <Quote className="h-7 w-7 text-primary-foreground" />
+                </div>
+                <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center animate-pulse">
+                  <Sparkles className="h-2.5 w-2.5 text-white" />
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl lg:text-2xl font-bold bg-[var(--gradient-primary)] bg-clip-text text-transparent">
-                  Price Calculator
+              <div className="space-y-1">
+                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent tracking-tight">
+                  Get Quote
                 </h1>
-                <p className="text-xs lg:text-sm text-muted-foreground">Welcome, {userName}</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-8 bg-gradient-to-r from-primary to-primary/50 rounded-full"></div>
+                  <p className="text-sm text-muted-foreground font-medium">Welcome, {userName}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <HelpDialog />
               <ThemeToggle />
             </div>
@@ -142,31 +151,31 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-6 lg:py-8">
         <Tabs defaultValue="box" className="w-full">
-          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-3 sm:grid-cols-6 gap-2 mb-6 lg:mb-8 h-auto p-2 bg-muted/50 backdrop-blur-sm">
-            <TabsTrigger value="box" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <CalculatorIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Box</span>
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-3 sm:grid-cols-6 gap-2 mb-6 lg:mb-8 h-auto p-3 bg-gradient-to-r from-muted/60 via-muted/40 to-muted/60 backdrop-blur-md rounded-2xl border border-border/50">
+            <TabsTrigger value="box" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-xs sm:text-sm font-medium">Box</span>
             </TabsTrigger>
-            <TabsTrigger value="brochure" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Brochure</span>
+            <TabsTrigger value="brochure" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+              <span className="text-xs sm:text-sm font-medium">Brochure</span>
             </TabsTrigger>
-            <TabsTrigger value="card" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm hidden sm:inline">Card</span>
-              <span className="text-xs sm:hidden">Card</span>
+            <TabsTrigger value="card" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <Printer className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+              <span className="text-xs sm:text-sm font-medium hidden sm:inline">Digital Print</span>
+              <span className="text-xs font-medium sm:hidden">Digital</span>
             </TabsTrigger>
-            <TabsTrigger value="paperbag" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Paper Bag</span>
+            <TabsTrigger value="paperbag" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+              <span className="text-xs sm:text-sm font-medium">Paper Bag</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Settings</span>
+            <TabsTrigger value="settings" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+              <span className="text-xs sm:text-sm font-medium">Settings</span>
             </TabsTrigger>
-            <TabsTrigger value="guide" className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all">
-              <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Guide</span>
+            <TabsTrigger value="guide" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/10 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/20 transition-all duration-300 hover:scale-105 rounded-xl p-2 sm:p-3">
+              <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+              <span className="text-xs sm:text-sm font-medium">Guide</span>
             </TabsTrigger>
           </TabsList>
 
@@ -179,7 +188,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="card" className="mt-0">
-            <BusinessCardCalculator pricing={businessCardPricing} />
+            <BusinessCardCalculator pricing={businessCardPricing} userName={userName} />
           </TabsContent>
 
           <TabsContent value="paperbag" className="mt-0">
@@ -192,11 +201,12 @@ const Index = () => {
             ) : (
             <div className="max-w-5xl mx-auto">
               <Tabs defaultValue="box-settings" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 mb-6 h-auto p-2">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-2 mb-6 h-auto p-2">
                   <TabsTrigger value="box-settings" className="text-xs sm:text-sm">Box</TabsTrigger>
                   <TabsTrigger value="brochure-settings" className="text-xs sm:text-sm">Brochure</TabsTrigger>
-                  <TabsTrigger value="card-settings" className="text-xs sm:text-sm">Card</TabsTrigger>
+                  <TabsTrigger value="card-settings" className="text-xs sm:text-sm">Digital Print</TabsTrigger>
                   <TabsTrigger value="paperbag-settings" className="text-xs sm:text-sm">Paper Bag</TabsTrigger>
+                  <TabsTrigger value="quotation-history" className="text-xs sm:text-sm">Quotations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="box-settings">
@@ -224,7 +234,7 @@ const Index = () => {
                 <TabsContent value="card-settings">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Business Card Calculator Pricing</CardTitle>
+                      <CardTitle>Digital Print Calculator Pricing</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <BusinessCardPricingSettings pricing={businessCardPricing} onUpdate={setBusinessCardPricing} />
@@ -241,6 +251,10 @@ const Index = () => {
                       <PaperBagPricingSettings pricing={paperBagPricing} onUpdate={setPaperBagPricing} />
                     </CardContent>
                   </Card>
+                </TabsContent>
+
+                <TabsContent value="quotation-history">
+                  <QuotationHistory />
                 </TabsContent>
               </Tabs>
             </div>

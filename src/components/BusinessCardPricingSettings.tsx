@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Settings2, Save, Sparkles } from "lucide-react";
+import { Settings2, Save, Sparkles, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 interface BusinessCardPricingSettingsProps {
@@ -34,7 +34,7 @@ export const BusinessCardPricingSettings = ({ pricing, onUpdate }: BusinessCardP
 
   const handleSave = () => {
     onUpdate(localPricing);
-    toast.success("Business card pricing updated successfully!");
+    toast.success("Digital printing pricing updated successfully!");
   };
 
   const updateTreatmentPrice = (treatment: string, value: number) => {
@@ -49,10 +49,10 @@ export const BusinessCardPricingSettings = ({ pricing, onUpdate }: BusinessCardP
       <Card className="shadow-[var(--shadow-card)]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" />
-            Treatment Costs (per 100 cards)
+            <Printer className="h-5 w-5 text-purple-600" />
+            Digital Print Treatment Costs
           </CardTitle>
-          <CardDescription>Adjust the cost for premium treatments</CardDescription>
+          <CardDescription>Adjust the cost for premium digital printing treatments</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -188,7 +188,7 @@ export const BusinessCardPricingSettings = ({ pricing, onUpdate }: BusinessCardP
 
       <Button onClick={handleSave} className="w-full" size="lg">
         <Save className="mr-2 h-4 w-4" />
-        Save Business Card Pricing Settings
+        Save Digital Printing Settings
       </Button>
     </div>
   );

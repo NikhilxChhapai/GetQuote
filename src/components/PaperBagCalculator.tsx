@@ -350,8 +350,9 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                 type="number"
                 step="0.1"
                 placeholder="e.g., 11.9"
-                value={length}
+                value={length === '0' || length === '' ? '' : length}
                 onChange={(e) => setLength(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="h-10"
               />
             </div>
@@ -363,8 +364,9 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                 type="number"
                 step="0.1"
                 placeholder="e.g., 8.5"
-                value={height}
+                value={height === '0' || height === '' ? '' : height}
                 onChange={(e) => setHeight(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="h-10"
               />
             </div>
@@ -376,8 +378,9 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                 type="number"
                 step="0.1"
                 placeholder="e.g., 3.35"
-                value={gusset}
+                value={gusset === '0' || gusset === '' ? '' : gusset}
                 onChange={(e) => setGusset(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="h-10"
               />
             </div>

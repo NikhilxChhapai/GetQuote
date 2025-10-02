@@ -4,7 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { IndianRupee, FileText, Layers, Scissors, Package, Sparkles } from "lucide-react";
+import { IndianRupee, FileText, Layers, Scissors, Package, Sparkles, Download, Truck, Calculator as CalcIcon, Plus, Trash2 } from "lucide-react";
+import jsPDF from 'jspdf';
+import { Button } from "@/components/ui/button";
+import { ShippingCalculator } from "@/lib/shippingCalculator";
+import { QuotationLogger } from "@/lib/quotationLogger";
 
 interface BrochurePricing {
   paperGSMPrices: {
@@ -22,9 +26,10 @@ interface BrochurePricing {
 
 interface BrochureCalculatorProps {
   pricing: BrochurePricing;
+  userName?: string;
 }
 
-export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
+export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalculatorProps) => {
   const [length, setLength] = useState<number>(30);
   const [height, setHeight] = useState<number>(10);
   const [gusset, setGusset] = useState<number>(2);
@@ -35,6 +40,12 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
   const [includeSpotUV, setIncludeSpotUV] = useState(false);
   const [includeEmbossing, setIncludeEmbossing] = useState(false);
   const [includePocket, setIncludePocket] = useState(false);
+  const [shippingZone, setShippingZone] = useState<'local' | 'regional' | 'national'>('national');
+  
+  // Add-on costs
+  const [addOns, setAddOns] = useState([
+    { id: 1, description: '', cost: 0, enabled: false }
+  ]);
 
   const [results, setResults] = useState({
     flatWidth: 0,
@@ -52,6 +63,15 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
     pocketCost: 0,
     totalCost: 0,
     perPieceCost: 0,
+    // GST and shipping fields
+    baseAmount: 0,
+    gstAmount: 0,
+    gstRate: 18,
+    shippingCharges: 0,
+    shippingWeight: 0,
+    finalTotal: 0,
+    isFreeShipping: false,
+    addOnCosts: 0,
   });
 
   useEffect(() => {
@@ -148,10 +168,12 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
               <Input
                 id="length"
                 type="number"
-                value={length}
-                onChange={(e) => setLength(Number(e.target.value))}
+                value={length === 0 ? '' : length}
+                onChange={(e) => setLength(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="1"
                 step="0.1"
+                placeholder="Enter length"
               />
             </div>
             <div className="space-y-2">
@@ -159,10 +181,12 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
               <Input
                 id="height"
                 type="number"
-                value={height}
-                onChange={(e) => setHeight(Number(e.target.value))}
+                value={height === 0 ? '' : height}
+                onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="1"
                 step="0.1"
+                placeholder="Enter height"
               />
             </div>
             <div className="space-y-2">
@@ -170,10 +194,12 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
               <Input
                 id="gusset"
                 type="number"
-                value={gusset}
-                onChange={(e) => setGusset(Number(e.target.value))}
+                value={gusset === 0 ? '' : gusset}
+                onChange={(e) => setGusset(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="0"
                 step="0.1"
+                placeholder="Enter gusset"
               />
             </div>
           </div>
@@ -183,9 +209,11 @@ export const BrochureCalculator = ({ pricing }: BrochureCalculatorProps) => {
             <Input
               id="quantity"
               type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              value={quantity === 0 ? '' : quantity}
+              onChange={(e) => setQuantity(e.target.value === '' ? 0 : Number(e.target.value))}
+              onFocus={(e) => e.target.select()}
               min="1"
+              placeholder="Enter quantity"
             />
           </div>
 

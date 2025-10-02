@@ -1,73 +1,135 @@
-# Welcome to your Lovable project
+# Royal Box Calculist 📦
 
-## Project info
+A modern, responsive calculator application for various printing and packaging calculations including boxes, brochures, business cards, and paper bags.
 
-**URL**: https://lovable.dev/projects/988a027a-df0d-4e3c-b885-193f9b3f600b
+## 🚀 Features
 
-## How can I edit this code?
+- **Box Calculator** - Calculate pricing for custom boxes
+- **Brochure Calculator** - Pricing for brochure printing
+- **Business Card Calculator** - Business card cost estimation
+- **Paper Bag Calculator** - Paper bag pricing calculations
+- **Modern UI** - Built with React, TypeScript, and Tailwind CSS
+- **Dark/Light Theme** - Toggle between themes
+- **Responsive Design** - Works on all devices
+- **PDF Export** - Export calculations as PDF
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Components**: Radix UI, shadcn/ui
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **PDF Generation**: jsPDF
+- **Deployment**: Vercel
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/988a027a-df0d-4e3c-b885-193f9b3f600b) and start prompting.
+## 🏃‍♂️ Quick Start
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
+- Node.js 16+ 
+- npm or yarn
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd royal-box-calculist-39474-32924-62364
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. Install dependencies:
+```bash
+npm install
+```
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open [http://localhost:8080](http://localhost:8080) in your browser
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📦 Deployment
 
-**Use GitHub Codespaces**
+This project is configured for automatic deployment with Vercel. Every push to the main branch will trigger a new deployment.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Easy GitHub Push
 
-## What technologies are used for this project?
+Use the built-in deployment script:
 
-This project is built with:
+```bash
+# Method 1: Using npm script
+npm run push "Your commit message"
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Method 2: Using node directly  
+node deploy.js "Your commit message"
 
-## How can I deploy this project?
+# Method 3: Manual git commands
+git add .
+git commit -m "Your commit message"
+git push origin main
+```
 
-Simply open [Lovable](https://lovable.dev/projects/988a027a-df0d-4e3c-b885-193f9b3f600b) and click on Share -> Publish.
+The deployment script automatically:
+- ✅ Checks for sensitive files
+- 📦 Stages all changes
+- 💾 Commits with your message
+- 🌐 Pushes to GitHub
+- 🚀 Triggers Vercel deployment
 
-## Can I connect a custom domain to my Lovable project?
+## 🔒 Security
 
-Yes, you can!
+- All sensitive files are automatically excluded via `.gitignore`
+- Environment variables template provided in `env.example`
+- Deployment script prevents accidental sensitive file commits
+- Public repository safe - no secrets exposed
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📁 Project Structure
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+src/
+├── components/          # React components
+│   ├── ui/             # shadcn/ui components
+│   ├── Calculator.tsx  # Main calculator component
+│   └── ...
+├── data/               # Static data and configurations
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+└── pages/              # Page components
+```
+
+## 🎨 Customization
+
+### Adding New Calculators
+1. Create new component in `src/components/`
+2. Add pricing logic in `src/data/`
+3. Update main calculator component
+4. Add navigation if needed
+
+### Styling
+- Modify `tailwind.config.ts` for theme customization
+- Update CSS variables in `src/index.css`
+- Use shadcn/ui components for consistency
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `npm run push "Add amazing feature"`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+If you encounter any issues:
+1. Check the console for errors
+2. Ensure all dependencies are installed
+3. Verify Node.js version compatibility
+4. Check Vercel deployment logs
+
+---
+
+Made with ❤️ using React + TypeScript + Vite

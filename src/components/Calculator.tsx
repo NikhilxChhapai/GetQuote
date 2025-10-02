@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Box, Ruler, Layers, IndianRupee, FileText, Sparkles, Package } from "lucide-react";
+import { Box, Ruler, Layers, IndianRupee, FileText, Sparkles, Package, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import jsPDF from 'jspdf';
 
 interface CalculatorProps {
   pricing: {
@@ -99,6 +100,130 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     });
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    // Header with better formatting
+    doc.setFontSize(22);
+    doc.setTextColor(0, 102, 204);
+    doc.text('BOX PACKAGING QUOTATION', 20, 30);
+    
+    // Date and reference
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const today = new Date();
+    doc.text(`Generated on: ${today.toLocaleDateString('en-IN')}`, 20, 45);
+    doc.text(`Quote Ref: BX-${today.getTime().toString().slice(-6)}`, 20, 55);
+    
+    // Specifications section
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('BOX SPECIFICATIONS:', 20, 75);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Dimensions:`, 30, 90);
+    doc.text(`${length}" x ${width}" x ${height}"`, 120, 90);
+    
+    doc.text(`Quantity:`, 30, 105);
+    doc.text(`${quantity.toLocaleString('en-IN')} boxes`, 120, 105);
+    
+    doc.text(`Board Thickness:`, 30, 120);
+    doc.text(`${boardThickness}`, 120, 120);
+    
+    doc.text(`Paper Type:`, 30, 135);
+    doc.text(`${paperType}`, 120, 135);
+    
+    doc.text(`Board Flat Size:`, 30, 150);
+    doc.text(`${results.boardFlatLength}" x ${results.boardFlatWidth}"`, 120, 150);
+    
+    doc.text(`Boxes per Sheet:`, 30, 165);
+    doc.text(`${results.boardUPS}`, 120, 165);
+    
+    doc.text(`Board Sheets Needed:`, 30, 180);
+    doc.text(`${results.boardQty}`, 120, 180);
+    
+    doc.text(`Paper Sheets Needed:`, 30, 195);
+    doc.text(`${results.paperSheetsNeeded}`, 120, 195);
+    
+    // Special Features section
+    let yPos = 215;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('SPECIAL FEATURES:', 20, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    if (includeFoiling) {
+      doc.text(`• Foiling:`, 30, yPos);
+      doc.text(`Rs. ${results.foilingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    if (includeEmbossing) {
+      doc.text(`• Embossing:`, 30, yPos);
+      doc.text(`Rs. ${results.embossingCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    if (includeSpotUV) {
+      doc.text(`• Spot UV:`, 30, yPos);
+      doc.text(`Rs. ${results.spotUVCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    if (!includeFoiling && !includeEmbossing && !includeSpotUV) {
+      doc.text('• No special features selected', 30, yPos);
+      yPos += 12;
+    }
+    
+    // Cost Breakdown section
+    yPos += 10;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('COST BREAKDOWN:', 20, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Board Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.totalBoardPrice.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Paper Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.totalPaperPrice.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Printing Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.printingCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    // Draw a line before total
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 5, 190, yPos + 5);
+    yPos += 15;
+    
+    // Total Cost
+    doc.setFontSize(16);
+    doc.setTextColor(0, 102, 204);
+    doc.text('TOTAL COST:', 20, yPos);
+    doc.text(`Rs. ${results.totalPrice.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 20;
+    
+    // Per box cost
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Per Box Cost:', 20, yPos);
+    doc.text(`Rs. ${results.perBoxPrice.toFixed(2)}`, 120, yPos);
+    
+    // Footer with better formatting
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This is a computer generated quotation. All prices are in Indian Rupees.', 20, 280);
+    doc.text('Valid for 30 days from the date of generation.', 20, 290);
+    
+    // Save the PDF
+    doc.save(`Box-Quote-${today.toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Input Section */}
@@ -121,10 +246,12 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 <Input
                   id="length"
                   type="number"
-                  value={length}
-                  onChange={(e) => setLength(Number(e.target.value))}
+                  value={length === 0 ? '' : length}
+                  onChange={(e) => setLength(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
                   min="1"
                   step="0.25"
+                  placeholder="Enter length"
                 />
               </div>
               <div className="space-y-2">
@@ -135,10 +262,12 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 <Input
                   id="width"
                   type="number"
-                  value={width}
-                  onChange={(e) => setWidth(Number(e.target.value))}
+                  value={width === 0 ? '' : width}
+                  onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
                   min="1"
                   step="0.25"
+                  placeholder="Enter width"
                 />
               </div>
               <div className="space-y-2">
@@ -149,10 +278,12 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 <Input
                   id="height"
                   type="number"
-                  value={height}
-                  onChange={(e) => setHeight(Number(e.target.value))}
+                  value={height === 0 ? '' : height}
+                  onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
                   min="1"
                   step="0.25"
+                  placeholder="Enter height"
                 />
               </div>
             </div>
@@ -164,9 +295,11 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
               <Input
                 id="quantity"
                 type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
+                value={quantity === 0 ? '' : quantity}
+                onChange={(e) => setQuantity(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="1"
+                placeholder="Enter quantity"
               />
             </div>
           </CardContent>
@@ -302,7 +435,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
 
             <Separator />
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               <div className="flex justify-between items-center text-lg">
                 <span className="font-semibold">Total Price</span>
                 <span className="font-bold text-accent">₹{results.totalPrice.toFixed(2)}</span>
@@ -310,6 +443,18 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
               <div className="flex justify-between items-center text-2xl">
                 <span className="font-semibold">Price per Box</span>
                 <span className="font-bold text-accent">₹{results.perBoxPrice.toFixed(2)}</span>
+              </div>
+              
+              {/* PDF Download Button */}
+              <div className="pt-4 border-t">
+                <Button 
+                  onClick={generatePDF}
+                  className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300 hover:scale-105"
+                  size="lg"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  Download PDF Quote
+                </Button>
               </div>
             </div>
           </CardContent>

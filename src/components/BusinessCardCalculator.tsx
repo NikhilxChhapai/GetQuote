@@ -4,7 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { IndianRupee, CreditCard, Sparkles, Layers } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { IndianRupee, Printer, Sparkles, Layers, Download, FileText, Zap, Truck, Calculator as CalcIcon, Plus, Trash2 } from "lucide-react";
+import jsPDF from 'jspdf';
+import { ShippingCalculator } from "@/lib/shippingCalculator";
+import { QuotationLogger } from "@/lib/quotationLogger";
 
 interface BusinessCardPricing {
   paperTypes: {
@@ -28,13 +32,20 @@ interface BusinessCardPricing {
 
 interface BusinessCardCalculatorProps {
   pricing: BusinessCardPricing;
+  userName?: string;
 }
 
-export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps) => {
+export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: BusinessCardCalculatorProps) => {
   const [width, setWidth] = useState<number>(3.5);
   const [height, setHeight] = useState<number>(2);
   const [quantity, setQuantity] = useState<number>(500);
   const [paperType, setPaperType] = useState<string>("350 matt");
+  const [shippingZone, setShippingZone] = useState<'local' | 'regional' | 'national'>('national');
+  
+  // Add-on costs
+  const [addOns, setAddOns] = useState([
+    { id: 1, description: '', cost: 0, enabled: false }
+  ]);
   
   const [treatments, setTreatments] = useState({
     foilingDigital: false,
@@ -65,11 +76,21 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
     stickerCuttingCost: 0,
     totalCost: 0,
     perPieceCost: 0,
+    // New fields for GST and shipping
+    baseAmount: 0,
+    gstAmount: 0,
+    gstRate: 18,
+    shippingCharges: 0,
+    shippingWeight: 0,
+    finalTotal: 0,
+    isFreeShipping: false,
+    // Add-on costs
+    addOnCosts: 0,
   });
 
   useEffect(() => {
     calculatePrice();
-  }, [width, height, quantity, paperType, treatments, pricing]);
+  }, [width, height, quantity, paperType, treatments, pricing, shippingZone, addOns]);
 
   const getPaperPricePerSheet = () => {
     const paperPricing = pricing.paperTypes[paperType];
@@ -129,7 +150,22 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
       laserCuttingCost + 
       stickerCuttingCost;
     
-    const perPieceCost = totalCost / quantity;
+    // Calculate add-on costs
+    const addOnCosts = addOns
+      .filter(addon => addon.enabled && addon.cost > 0)
+      .reduce((sum, addon) => sum + addon.cost, 0);
+    
+    const totalWithAddOns = totalCost + addOnCosts;
+    const perPieceCost = totalWithAddOns / quantity;
+
+    // Calculate GST and shipping
+    const specifications = { width, height, quantity, paperType };
+    const shippingCalc = ShippingCalculator.calculateTotal(
+      totalWithAddOns,
+      'digital-print',
+      specifications,
+      shippingZone
+    );
 
     setResults({
       upsPerSheet,
@@ -147,6 +183,16 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
       stickerCuttingCost: Math.round(stickerCuttingCost * 100) / 100,
       totalCost: Math.round(totalCost * 100) / 100,
       perPieceCost: Math.round(perPieceCost * 100) / 100,
+      // GST and shipping fields
+      baseAmount: Math.round(totalWithAddOns * 100) / 100,
+      gstAmount: shippingCalc.gstAmount,
+      gstRate: shippingCalc.gstRate,
+      shippingCharges: shippingCalc.shippingCharges,
+      shippingWeight: shippingCalc.shippingWeight,
+      finalTotal: shippingCalc.totalAmount,
+      isFreeShipping: shippingCalc.isFreeShipping,
+      // Add-on costs
+      addOnCosts: Math.round(addOnCosts * 100) / 100,
     });
   };
 
@@ -154,16 +200,196 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
     setTreatments(prev => ({ ...prev, [treatment]: !prev[treatment] }));
   };
 
+  // Add-on management functions
+  const addNewAddOn = () => {
+    const newId = Math.max(...addOns.map(a => a.id), 0) + 1;
+    setAddOns(prev => [...prev, { id: newId, description: '', cost: 0, enabled: false }]);
+  };
+
+  const removeAddOn = (id: number) => {
+    setAddOns(prev => prev.filter(addon => addon.id !== id));
+  };
+
+  const updateAddOn = (id: number, field: 'description' | 'cost' | 'enabled', value: string | number | boolean) => {
+    setAddOns(prev => prev.map(addon => 
+      addon.id === id ? { ...addon, [field]: value } : addon
+    ));
+  };
+
+  const generatePDF = () => {
+    // Save quotation to log
+    const quoteRef = QuotationLogger.saveQuotation({
+      userName,
+      calculatorType: 'digital-print',
+      specifications: { width, height, quantity, paperType, treatments, shippingZone },
+      pricing: {
+        baseAmount: results.baseAmount,
+        gstAmount: results.gstAmount,
+        shippingCharges: results.shippingCharges,
+        totalAmount: results.finalTotal,
+      }
+    });
+
+    const doc = new jsPDF();
+    
+    // Header with better formatting
+    doc.setFontSize(22);
+    doc.setTextColor(0, 102, 204);
+    doc.text('DIGITAL PRINT QUOTATION', 20, 30);
+    
+    // Date and reference
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const today = new Date();
+    doc.text(`Generated on: ${today.toLocaleDateString('en-IN')}`, 20, 45);
+    doc.text(`Quote Ref: ${quoteRef}`, 20, 55);
+    doc.text(`Customer: ${userName}`, 20, 65);
+    
+    // Specifications section
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('SPECIFICATIONS:', 20, 75);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Dimensions:`, 30, 90);
+    doc.text(`${width}" x ${height}"`, 120, 90);
+    
+    doc.text(`Quantity:`, 30, 105);
+    doc.text(`${quantity.toLocaleString('en-IN')} pieces`, 120, 105);
+    
+    doc.text(`Paper Type:`, 30, 120);
+    doc.text(`${paperType}`, 120, 120);
+    
+    doc.text(`Sheets Needed:`, 30, 135);
+    doc.text(`${results.sheetsNeeded}`, 120, 135);
+    
+    doc.text(`Pieces per Sheet:`, 30, 150);
+    doc.text(`${results.upsPerSheet}`, 120, 150);
+    
+    // Special Treatments section
+    let yPos = 170;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('SPECIAL TREATMENTS:', 20, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    const activeTreatments = Object.entries(treatments).filter(([_, active]) => active);
+    if (activeTreatments.length > 0) {
+      activeTreatments.forEach(([treatment, _]) => {
+        const treatmentName = treatment.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        const cost = results[`${treatment}Cost` as keyof typeof results] as number;
+        doc.text(`• ${treatmentName}:`, 30, yPos);
+        doc.text(`Rs. ${cost.toLocaleString('en-IN')}`, 120, yPos);
+        yPos += 12;
+      });
+    } else {
+      doc.text('• No special treatments selected', 30, yPos);
+      yPos += 12;
+    }
+    
+    // Cost Breakdown section
+    yPos += 10;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('COST BREAKDOWN:', 20, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Paper Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.paperCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    // Add treatment costs if any
+    if (activeTreatments.length > 0) {
+      doc.text(`Treatment Costs:`, 30, yPos);
+      const totalTreatmentCost = activeTreatments.reduce((sum, [treatment, _]) => {
+        return sum + (results[`${treatment}Cost` as keyof typeof results] as number);
+      }, 0);
+      doc.text(`Rs. ${totalTreatmentCost.toLocaleString('en-IN')}`, 120, yPos);
+      yPos += 12;
+    }
+    
+    // Add-on costs if any
+    const enabledAddOns = addOns.filter(addon => addon.enabled && addon.cost > 0);
+    if (enabledAddOns.length > 0) {
+      enabledAddOns.forEach(addon => {
+        doc.text(`• ${addon.description}:`, 30, yPos);
+        doc.text(`Rs. ${addon.cost.toLocaleString('en-IN')}`, 120, yPos);
+        yPos += 12;
+      });
+    }
+    
+    doc.text(`Subtotal:`, 30, yPos);
+    doc.text(`Rs. ${results.baseAmount.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`GST (${results.gstRate}%):`, 30, yPos);
+    doc.text(`Rs. ${results.gstAmount.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
+    
+    doc.text(`Shipping (${results.shippingWeight}kg):`, 30, yPos);
+    if (results.isFreeShipping) {
+      doc.text(`FREE`, 120, yPos);
+    } else {
+      doc.text(`Rs. ${results.shippingCharges.toLocaleString('en-IN')}`, 120, yPos);
+    }
+    yPos += 12;
+    
+    // Draw a line before total
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 5, 190, yPos + 5);
+    yPos += 15;
+    
+    // Final Total
+    doc.setFontSize(16);
+    doc.setTextColor(0, 102, 204);
+    doc.text('FINAL TOTAL:', 20, yPos);
+    doc.text(`Rs. ${results.finalTotal.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 20;
+    
+    // Per piece cost
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Per Piece Cost:', 20, yPos);
+    doc.text(`Rs. ${(results.finalTotal / quantity).toFixed(2)}`, 120, yPos);
+    
+    // Footer with better formatting
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This is a computer generated quotation. All prices are in Indian Rupees.', 20, 280);
+    doc.text('Valid for 30 days from the date of generation.', 20, 290);
+    
+    // Save the PDF
+    doc.save(`Digital-Print-Quote-${today.toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="grid gap-4 lg:gap-6 md:grid-cols-2">
       {/* Input Section */}
       <Card className="h-fit">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <CreditCard className="h-5 w-5 text-primary" />
-            Business Card Specifications
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-t-lg">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg">
+              <Printer className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
+                Digital Print Calculator
+              </span>
+              <div className="flex items-center gap-1 mt-1">
+                <Zap className="h-3 w-3 text-yellow-500" />
+                <span className="text-xs text-muted-foreground font-normal">Professional Quality Printing</span>
+              </div>
+            </div>
           </CardTitle>
-          <CardDescription>Enter your business card dimensions and preferences</CardDescription>
+          <CardDescription className="flex items-center gap-2 mt-2">
+            <FileText className="h-4 w-4 text-blue-500" />
+            Enter your digital print specifications and get instant pricing
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -172,10 +398,12 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
               <Input
                 id="width"
                 type="number"
-                value={width}
-                onChange={(e) => setWidth(Number(e.target.value))}
+                value={width === 0 ? '' : width}
+                onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="0.1"
                 step="0.1"
+                placeholder="Enter width"
               />
             </div>
             <div className="space-y-2">
@@ -183,10 +411,12 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
               <Input
                 id="height"
                 type="number"
-                value={height}
-                onChange={(e) => setHeight(Number(e.target.value))}
+                value={height === 0 ? '' : height}
+                onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 min="0.1"
                 step="0.1"
+                placeholder="Enter height"
               />
             </div>
           </div>
@@ -196,9 +426,11 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
             <Input
               id="quantity"
               type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              value={quantity === 0 ? '' : quantity}
+              onChange={(e) => setQuantity(e.target.value === '' ? 0 : Number(e.target.value))}
+              onFocus={(e) => e.target.select()}
               min="1"
+              placeholder="Enter quantity"
             />
           </div>
 
@@ -214,6 +446,23 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
                     {type}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="shippingZone" className="flex items-center gap-2">
+              <Truck className="h-4 w-4 text-blue-600" />
+              Shipping Zone
+            </Label>
+            <Select value={shippingZone} onValueChange={(value: 'local' | 'regional' | 'national') => setShippingZone(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="local">Local (Same City) - Fastest</SelectItem>
+                <SelectItem value="regional">Regional (Same State) - 2-3 Days</SelectItem>
+                <SelectItem value="national">National (Other States) - 4-7 Days</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -333,12 +582,79 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
               </div>
             </div>
           </div>
+
+          {/* Add-on Costs Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4 text-green-600" />
+                Additional Costs
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addNewAddOn}
+                className="text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Item
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {addOns.map((addon) => (
+                <div key={addon.id} className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                  <Checkbox
+                    checked={addon.enabled}
+                    onCheckedChange={(checked) => updateAddOn(addon.id, 'enabled', checked as boolean)}
+                  />
+                  <Input
+                    placeholder="Description (e.g., Design charges)"
+                    value={addon.description}
+                    onChange={(e) => updateAddOn(addon.id, 'description', e.target.value)}
+                    className="flex-1 h-8 text-sm"
+                  />
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground">₹</span>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={addon.cost === 0 ? '' : addon.cost}
+                      onChange={(e) => updateAddOn(addon.id, 'cost', e.target.value === '' ? 0 : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      className="w-20 h-8 text-sm"
+                      min="0"
+                    />
+                  </div>
+                  {addOns.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAddOn(addon.id)}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {results.addOnCosts > 0 && (
+              <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">Total Add-ons</span>
+                <span className="text-sm font-mono text-green-700 dark:text-green-300">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
       {/* Results Section */}
       <div className="space-y-4 lg:space-y-6">
-        <Card className="sticky top-24 h-fit">
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <IndianRupee className="h-5 w-5 text-primary" />
@@ -425,20 +741,76 @@ export const BusinessCardCalculator = ({ pricing }: BusinessCardCalculatorProps)
           </CardContent>
         </Card>
 
-        <Card className="shadow-[var(--shadow-elegant)] bg-[var(--gradient-primary)] text-primary-foreground">
-          <CardHeader>
-            <CardTitle className="text-2xl">Total Price</CardTitle>
+        <Card className="shadow-xl bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground border-0">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                <IndianRupee className="h-6 w-6" />
+              </div>
+              <div>
+                <span>Total Quote</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Sparkles className="h-3 w-3 text-yellow-300" />
+                  <span className="text-xs opacity-90 font-normal">Instant Pricing</span>
+                </div>
+              </div>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-lg">Total Cost:</span>
-                <span className="text-3xl font-bold">₹{results.totalCost.toLocaleString('en-IN')}</span>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                <span className="text-sm opacity-90">Print Cost:</span>
+                <span className="text-lg font-medium">₹{results.totalCost.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
-                <span className="text-sm opacity-90">Per Piece:</span>
-                <span className="text-xl font-semibold">₹{results.perPieceCost.toFixed(2)}</span>
+              {results.addOnCosts > 0 && (
+                <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                  <span className="text-sm opacity-90 flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Add-ons:
+                  </span>
+                  <span className="text-lg font-medium">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                <span className="text-sm opacity-90">Subtotal:</span>
+                <span className="text-lg font-medium">₹{results.baseAmount.toLocaleString('en-IN')}</span>
               </div>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                <span className="text-sm opacity-90 flex items-center gap-1">
+                  <CalcIcon className="h-3 w-3" />
+                  GST ({results.gstRate}%):
+                </span>
+                <span className="text-lg font-medium">₹{results.gstAmount.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                <span className="text-sm opacity-90 flex items-center gap-1">
+                  <Truck className="h-3 w-3" />
+                  Shipping ({results.shippingWeight}kg):
+                </span>
+                <span className="text-lg font-medium">
+                  {results.isFreeShipping ? 'FREE' : `₹${results.shippingCharges.toLocaleString('en-IN')}`}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30">
+                <span className="text-lg font-bold">Final Total:</span>
+                <span className="text-3xl font-bold">₹{results.finalTotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
+                <span className="text-sm opacity-90">Per Piece Cost:</span>
+                <span className="text-xl font-semibold">₹{(results.finalTotal / quantity).toFixed(2)}</span>
+              </div>
+            </div>
+            
+            {/* PDF Download Button */}
+            <div className="pt-4 border-t border-white/20">
+              <Button 
+                onClick={generatePDF}
+                className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                size="lg"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Download PDF Quote
+              </Button>
             </div>
           </CardContent>
         </Card>
