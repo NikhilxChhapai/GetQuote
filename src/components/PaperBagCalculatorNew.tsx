@@ -379,53 +379,73 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
     
-    // Header with better formatting
-    doc.setFontSize(22);
-    doc.setTextColor(0, 102, 204);
-    doc.text('PAPER BAG QUOTATION', 20, 30);
+    // Header Section - Navy Blue
+    doc.setFillColor(30, 50, 80); // Navy Blue
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
-    // Date and reference
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text('PAPER BAG QUOTATION', margin, 25);
+    
+    // Date and reference - White text on navy
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
     const today = new Date();
-    doc.text(`Generated on: ${today.toLocaleDateString('en-IN')}`, 20, 45);
-    doc.text(`Quote Ref: PB-${today.getTime().toString().slice(-6)}`, 20, 55);
-    doc.text(`Customer: ${userName}`, 20, 65);
+    doc.text(`Generated: ${today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`, pageWidth - margin - 60, 18);
+    doc.text(`Ref: PB-${today.getTime().toString().slice(-6)}`, pageWidth - margin - 60, 25);
+    doc.text(`Customer: ${userName}`, pageWidth - margin - 60, 32);
     
-    // Specifications section
-    doc.setFontSize(14);
+    let yPos = 50;
+    
+    // Specifications section with better spacing
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, yPos, contentWidth, 8, 'F');
+    doc.setTextColor(30, 50, 80);
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('BAG SPECIFICATIONS', margin + 2, yPos + 6);
+    yPos += 15;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
     doc.setTextColor(0, 0, 0);
-    doc.text('BAG SPECIFICATIONS:', 20, 85);
     
-    doc.setFontSize(11);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Bag Type:`, 30, 100);
-    doc.text(`${bagType === 'sbs2' ? 'SBS 2 Sheet' : bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'}`, 120, 100);
+    const specItems = [
+      { label: 'Bag Type', value: bagType === 'sbs2' ? 'SBS 2 Sheet' : bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper' },
+      { label: 'Length', value: `${length}"` },
+      { label: 'Height', value: `${height}"` },
+      { label: 'Gusset', value: `${gusset}"` },
+      { label: 'Quantity', value: `${quantity.toLocaleString('en-IN')} bags` },
+      { label: 'Paper GSM', value: `${paperGSM}` },
+      { label: 'Paper Price', value: `₹${paperPrice}/sheet` },
+      { label: 'Flat Size', value: `${results.flatWidth}" × ${results.flatHeight}"` },
+      { label: 'Total Sheets', value: `${results.totalSheetsNeeded}` },
+    ];
     
-    doc.text(`Length:`, 30, 115);
-    doc.text(`${length}"`, 120, 115);
+    specItems.forEach((item, index) => {
+      doc.setTextColor(60, 60, 60);
+      doc.text(`${item.label}:`, margin + 5, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      doc.text(item.value, margin + 60, yPos);
+      doc.setFont(undefined, 'normal');
+      yPos += 8;
+    });
     
-    doc.text(`Height:`, 30, 130);
-    doc.text(`${height}"`, 120, 130);
-    
-    doc.text(`Gusset:`, 30, 145);
-    doc.text(`${gusset}"`, 120, 145);
-    
-    doc.text(`Quantity:`, 30, 160);
-    doc.text(`${quantity.toLocaleString('en-IN')} bags`, 120, 160);
-    
-    doc.text(`Paper GSM:`, 30, 175);
-    doc.text(`${paperGSM}`, 120, 175);
-    
-    doc.text(`Flat Size:`, 30, 190);
-    doc.text(`${results.flatWidth}" x ${results.flatHeight}" (${results.flatSize} sq in)`, 120, 190);
+    yPos += 5;
     
     // Cost Breakdown section
-    let yPos = 210;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('COST BREAKDOWN:', 20, yPos);
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, yPos, contentWidth, 8, 'F');
+    doc.setTextColor(30, 50, 80);
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('COST BREAKDOWN', margin + 2, yPos + 6);
     yPos += 15;
     
     doc.setFontSize(11);
@@ -510,17 +530,17 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
       {/* Input Section */}
       <div className="space-y-6">
         <Card className="shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-elegant)]">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-t-lg">
+          <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-blue-600 text-white shadow-lg">
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-md">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent font-bold">
+                <span className="text-foreground font-bold">
                   {bagType === 'sbs2' ? 'SBS 2 Sheet' : bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'} Calculator
                 </span>
                 <div className="flex items-center gap-1 mt-1">
-                  <Info className="h-3 w-3 text-yellow-500" />
+                  <Info className="h-3 w-3 text-accent" />
                   <span className="text-xs text-muted-foreground font-normal">Professional Bag Manufacturing</span>
                 </div>
               </div>
