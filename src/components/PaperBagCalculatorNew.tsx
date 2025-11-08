@@ -12,14 +12,14 @@ interface PaperBagCalculatorProps {
   userName: string;
 }
 
-type PaperBagType = 'sbs1' | 'keycolor' | 'kraft';
+type PaperBagType = 'sbs1' | 'sbs2' | 'keycolor' | 'kraft';
 
 export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
-  const [bagType, setBagType] = useState<PaperBagType>('sbs1');
+  const [bagType, setBagType] = useState<PaperBagType>('sbs2');
   const [quantity, setQuantity] = useState<number>(100);
-  const [length, setLength] = useState<number>(10);
-  const [height, setHeight] = useState<number>(14);
-  const [gusset, setGusset] = useState<number>(5);
+  const [length, setLength] = useState<number>(11.9);
+  const [height, setHeight] = useState<number>(8.5);
+  const [gusset, setGusset] = useState<number>(3.35);
   const [paperGSM, setPaperGSM] = useState<number>(270);
   const [paperPrice, setPaperPrice] = useState<number>(70);
   const [foiling, setFoiling] = useState(false);
@@ -135,6 +135,79 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
       spotUVCost = spotUV ? Math.max(totalSheetsNeeded * 5, 3000) : 0;
       
       embossingCost = 0; // SBS1 doesn't have embossing
+
+    } else if (bagType === 'sbs2') {
+      // SBS 2 Sheet Calculations
+      
+      // Flat Width Calculation - SBS2 uses L+G+1 formula (different from SBS1)
+      const calculateSBS2FlatWidth = (l: number, g: number): number => {
+        const sum = l + g + 1;
+        if (sum < 12) return 12;
+        if (sum < 13) return 13;
+        if (sum < 14) return 14;
+        if (sum < 18) return 18;
+        if (sum <= 20) return 20;
+        if (sum <= 23) return 23;
+        if (sum <= 25) return 25;
+        if (sum <= 31) return 31;
+        return sum;
+      };
+
+      // Flat Height Calculation - SBS2 uses H+G*0.8+1 formula (same as SBS1)
+      const calculateSBS2FlatHeight = (h: number, g: number): number => {
+        const sum = h + (g * 0.8) + 1;
+        if (sum < 12) return 12;
+        if (sum < 13) return 13;
+        if (sum < 14) return 14;
+        if (sum < 18) return 18;
+        if (sum <= 20) return 20;
+        if (sum <= 23) return 23;
+        if (sum <= 25) return 25;
+        if (sum <= 31) return 31;
+        return sum;
+      };
+
+      flatWidth = calculateSBS2FlatWidth(length, gusset);
+      flatHeight = calculateSBS2FlatHeight(height, gusset);
+      
+      // Paper Cost per Sheet: (flatWidth * flatHeight * paperGSM) / 3100 / 500 * paperPrice
+      paperCostPerSheet = (flatWidth * flatHeight * paperGSM) / 3100 / 500 * paperPrice;
+      
+      // Total Sheets Needed: (quantity * 2) + 200 (different from SBS1)
+      totalSheetsNeeded = (quantity * 2) + 200;
+      
+      // Printing Cost - SBS2 specific formula
+      // IF(K<=2500, 2500, IF(K<=2000, 3200, IF(K<=3000, 4000, IF(K<=4000, 4500, IF(K<=5000, 5500, (K/1000)*800)))))
+      if (totalSheetsNeeded <= 2500) {
+        printingCost = 2500;
+      } else if (totalSheetsNeeded <= 2000) {
+        printingCost = 3200;
+      } else if (totalSheetsNeeded <= 3000) {
+        printingCost = 4000;
+      } else if (totalSheetsNeeded <= 4000) {
+        printingCost = 4500;
+      } else if (totalSheetsNeeded <= 5000) {
+        printingCost = 5500;
+      } else {
+        printingCost = (totalSheetsNeeded / 1000) * 800;
+      }
+      
+      // Lamination Cost: MAX(flatSize/250 * totalSheetsNeeded, 750)
+      laminationCost = Math.max((flatWidth * flatHeight / 250) * totalSheetsNeeded, 750);
+      
+      // Die Cutting Cost: (totalSheetsNeeded/1000)*400
+      dieCuttingCost = (totalSheetsNeeded / 1000) * 400;
+      
+      // Bag Making Cost: quantity * 4.5 (can vary to quantity * 7, using 4.5 as default)
+      bagMakingCost = quantity * 4.5;
+      
+      // Foiling Cost: MAX(quantity*8, 3000) (can vary to MAX(sheets*6, 3000), using quantity*8 as default)
+      foilingCost = foiling ? Math.max(quantity * 8, 3000) : 0;
+      
+      // Spot UV Cost: MAX(totalSheetsNeeded*5, 3000) (can be 0, using MAX as default)
+      spotUVCost = spotUV ? Math.max(totalSheetsNeeded * 5, 3000) : 0;
+      
+      embossingCost = 0; // SBS2 doesn't have embossing
 
     } else if (bagType === 'keycolor') {
       // Keycolor Paper Bag Calculations
@@ -328,7 +401,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
     doc.text(`Bag Type:`, 30, 100);
-    doc.text(`${bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'}`, 120, 100);
+    doc.text(`${bagType === 'sbs2' ? 'SBS 2 Sheet' : bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'}`, 120, 100);
     
     doc.text(`Length:`, 30, 115);
     doc.text(`${length}"`, 120, 115);
@@ -385,7 +458,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
       yPos += 12;
     }
     
-    if (spotUV && bagType === 'sbs1') {
+    if (spotUV && (bagType === 'sbs1' || bagType === 'sbs2')) {
       doc.text(`Spot UV Cost:`, 30, yPos);
       doc.text(`Rs. ${results.spotUVCost.toLocaleString('en-IN')}`, 120, yPos);
       yPos += 12;
@@ -444,7 +517,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
               </div>
               <div>
                 <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent font-bold">
-                  {bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'} Calculator
+                  {bagType === 'sbs2' ? 'SBS 2 Sheet' : bagType === 'sbs1' ? 'SBS 1 Sheet' : bagType === 'keycolor' ? 'Keycolor Paper' : 'Kraft Paper'} Calculator
                 </span>
                 <div className="flex items-center gap-1 mt-1">
                   <Info className="h-3 w-3 text-yellow-500" />
@@ -462,6 +535,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                     <SelectValue placeholder="Select bag type" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="sbs2">SBS 2 Sheet</SelectItem>
                     <SelectItem value="sbs1">SBS 1 Sheet</SelectItem>
                     <SelectItem value="keycolor">Keycolor Paper</SelectItem>
                     <SelectItem value="kraft">Kraft Paper</SelectItem>
@@ -568,7 +642,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                     Foiling (Premium finish)
                   </Label>
                 </div>
-                {bagType === 'sbs1' && (
+                {(bagType === 'sbs1' || bagType === 'sbs2') && (
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="spotUV"
@@ -637,7 +711,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   <span className="font-medium">₹{results.foilingCost.toFixed(2)}</span>
                 </div>
               )}
-              {spotUV && bagType === 'sbs1' && (
+              {spotUV && (bagType === 'sbs1' || bagType === 'sbs2') && (
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Spot UV Cost</span>
                   <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
