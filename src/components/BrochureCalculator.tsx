@@ -24,7 +24,7 @@ interface BrochurePricing {
   pocketBase: number;
 }
 
-type BrochureCategory = 'standard' | 'montblanc';
+type BrochureCategory = 'standard' | 'montblanc' | 'gatefold300';
 
 interface BrochureCalculatorProps {
   pricing: BrochurePricing;
@@ -123,8 +123,8 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
       printingCost = (totalSheetsNeeded / 1000) * 1000;
     }
     
-    // Lamination Cost (Standard): MAX(flatWidth*flatHeight/250 * totalSheetsNeeded, 750)
-    const laminationCost = (brochureCategory === 'standard' && includeLamination) ? Math.max((flatWidth * flatHeight / 250) * totalSheetsNeeded, 750) : 0;
+    // Lamination Cost (Standard & Gatefold Art 300 GSM): MAX(flatWidth*flatHeight/250 * totalSheetsNeeded, 750)
+    const laminationCost = ((brochureCategory === 'standard' || brochureCategory === 'gatefold300') && includeLamination) ? Math.max((flatWidth * flatHeight / 250) * totalSheetsNeeded, 750) : 0;
     
     // Varnish Cost (Montblanc): MAX(flatWidth*flatHeight/750 * totalSheetsNeeded, 750)
     const varnishCost = (brochureCategory === 'montblanc' && includeVarnish) ? Math.max((flatWidth * flatHeight / 750) * totalSheetsNeeded, 750) : 0;
@@ -211,7 +211,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
     doc.text(`Category:`, 30, 100);
-    doc.text(`${brochureCategory === 'montblanc' ? 'Montblanc Gatefold (280 GSM)' : 'Standard Brochure'}`, 120, 100);
+    doc.text(`${brochureCategory === 'montblanc' ? 'Montblanc Gatefold (280 GSM)' : brochureCategory === 'gatefold300' ? 'Gatefold Art (300 GSM)' : 'Standard Brochure'}`, 120, 100);
     
     doc.text(`Dimensions:`, 30, 115);
     doc.text(`${length}" x ${height}" x ${gusset}"`, 120, 115);
@@ -248,7 +248,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
     doc.text(`Rs. ${results.printingCost.toLocaleString('en-IN')}`, 120, yPos);
     yPos += 12;
     
-    if (brochureCategory === 'standard' && includeLamination) {
+    if ((brochureCategory === 'standard' || brochureCategory === 'gatefold300') && includeLamination) {
       doc.text(`Lamination Cost:`, 30, yPos);
       doc.text(`Rs. ${results.laminationCost.toLocaleString('en-IN')}`, 120, yPos);
       yPos += 12;
@@ -343,13 +343,22 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
             <Label htmlFor="brochureCategory">Brochure Category</Label>
             <Select value={brochureCategory} onValueChange={(value: BrochureCategory) => {
               setBrochureCategory(value);
-              // Reset finishing options when category changes
+              // Reset finishing options and defaults when category changes
               if (value === 'montblanc') {
                 setIncludeLamination(false);
                 setIncludeVarnish(true);
+                setPaperGSM('290');
+                setPaperPrice(225);
+              } else if (value === 'gatefold300') {
+                setIncludeVarnish(false);
+                setIncludeLamination(true);
+                setPaperGSM('300');
+                setPaperPrice(100);
               } else {
                 setIncludeVarnish(false);
                 setIncludeLamination(true);
+                setPaperGSM('300');
+                setPaperPrice(100);
               }
             }}>
               <SelectTrigger>
@@ -358,6 +367,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
               <SelectContent>
                 <SelectItem value="standard">Standard Brochure</SelectItem>
                 <SelectItem value="montblanc">Montblanc Gatefold (280 GSM)</SelectItem>
+                <SelectItem value="gatefold300">Gatefold Art (300 GSM)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -449,7 +459,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
           <div className="space-y-4 pt-4 border-t">
             <Label className="text-base font-semibold">Finishing Options</Label>
             <div className="space-y-3">
-              {brochureCategory === 'standard' && (
+              {(brochureCategory === 'standard' || brochureCategory === 'gatefold300') && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="lamination"
@@ -552,7 +562,7 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                 <span className="text-sm font-medium">Printing Cost</span>
                 <span className="text-sm font-mono">₹{results.printingCost.toLocaleString('en-IN')}</span>
               </div>
-              {brochureCategory === 'standard' && includeLamination && (
+              {(brochureCategory === 'standard' || brochureCategory === 'gatefold300') && includeLamination && (
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-sm font-medium">Lamination Cost</span>
                   <span className="text-sm font-mono">₹{results.laminationCost.toLocaleString('en-IN')}</span>
