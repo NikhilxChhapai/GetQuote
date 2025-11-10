@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { Button } from "@/components/ui/button";
 import { ShippingCalculator } from "@/lib/shippingCalculator";
 import { QuotationLogger } from "@/lib/quotationLogger";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 
 interface BrochurePricing {
   paperGSMPrices: {
@@ -340,7 +341,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="brochureCategory">Brochure Category</Label>
+            <Label htmlFor="brochureCategory" className="flex items-center gap-2">
+              Brochure Category
+              <HelpTooltip content="Choose the brochure type. Options prefill finishes and GSM defaults." />
+            </Label>
             <Select value={brochureCategory} onValueChange={(value: BrochureCategory) => {
               setBrochureCategory(value);
               // Reset finishing options and defaults when category changes
@@ -374,7 +378,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="length">Length (inches)</Label>
+              <Label htmlFor="length" className="flex items-center gap-2">
+                Length (inches)
+                <HelpTooltip content="Finished width when laid flat (inches). Affects flat size and sheets." />
+              </Label>
               <Input
                 id="length"
                 type="number"
@@ -387,7 +394,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="height">Height (inches)</Label>
+              <Label htmlFor="height" className="flex items-center gap-2">
+                Height (inches)
+                <HelpTooltip content="Finished height of the brochure (inches)." />
+              </Label>
               <Input
                 id="height"
                 type="number"
@@ -400,7 +410,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gusset">Gusset (inches)</Label>
+              <Label htmlFor="gusset" className="flex items-center gap-2">
+                Gusset (inches)
+                <HelpTooltip content="Spine or fold allowance. Often 0 for single-fold brochures." />
+              </Label>
               <Input
                 id="gusset"
                 type="number"
@@ -415,7 +428,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity</Label>
+            <Label htmlFor="quantity" className="flex items-center gap-2">
+              Quantity
+              <HelpTooltip content="Total brochures needed. Impacts sheets and process costs." />
+            </Label>
             <Input
               id="quantity"
               type="number"
@@ -429,7 +445,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="paperGSM">Paper GSM</Label>
+              <Label htmlFor="paperGSM" className="flex items-center gap-2">
+                Paper GSM
+                <HelpTooltip content="Paper thickness/weight. Higher GSM = thicker, premium feel." />
+              </Label>
               <Select value={paperGSM} onValueChange={setPaperGSM}>
                 <SelectTrigger>
                   <SelectValue />
@@ -443,7 +462,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paperPrice">Paper Price (₹/sheet)</Label>
+              <Label htmlFor="paperPrice" className="flex items-center gap-2">
+                Paper Price (₹/sheet)
+                <HelpTooltip content="Cost per sheet for the selected GSM. Enter current rate." />
+              </Label>
               <Input
                 id="paperPrice"
                 type="number"
@@ -457,7 +479,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
           </div>
 
           <div className="space-y-4 pt-4 border-t">
-            <Label className="text-base font-semibold">Finishing Options</Label>
+            <Label className="text-base font-semibold flex items-center gap-2">
+              Finishing Options
+              <HelpTooltip content="Optional treatments that enhance print quality and appearance." />
+            </Label>
             <div className="space-y-3">
               {(brochureCategory === 'standard' || brochureCategory === 'gatefold300') && (
                 <div className="flex items-center space-x-2">
@@ -466,9 +491,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                     checked={includeLamination}
                     onCheckedChange={(checked) => setIncludeLamination(checked as boolean)}
                   />
-                  <Label htmlFor="lamination" className="cursor-pointer font-normal">
+                  <Label htmlFor="lamination" className="cursor-pointer font-normal flex items-center gap-2">
                     <Layers className="inline h-4 w-4 mr-1" />
                     Lamination
+                    <HelpTooltip content="Protective matte/gloss film. Improves durability and finish." />
                   </Label>
                 </div>
               )}
@@ -479,9 +505,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                     checked={includeVarnish}
                     onCheckedChange={(checked) => setIncludeVarnish(checked as boolean)}
                   />
-                  <Label htmlFor="varnish" className="cursor-pointer font-normal">
+                  <Label htmlFor="varnish" className="cursor-pointer font-normal flex items-center gap-2">
                     <Layers className="inline h-4 w-4 mr-1" />
                     Varnish
+                    <HelpTooltip content="Clear coating for Montblanc variant. Adds subtle sheen." />
                   </Label>
                 </div>
               )}
@@ -491,9 +518,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   checked={includeFoiling}
                   onCheckedChange={(checked) => setIncludeFoiling(checked as boolean)}
                 />
-                <Label htmlFor="foiling" className="cursor-pointer font-normal">
+                <Label htmlFor="foiling" className="cursor-pointer font-normal flex items-center gap-2">
                   <Sparkles className="inline h-4 w-4 mr-1" />
                   Foiling
+                  <HelpTooltip content="Metallic foil stamping for premium highlights." />
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -502,9 +530,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   checked={includeSpotUV}
                   onCheckedChange={(checked) => setIncludeSpotUV(checked as boolean)}
                 />
-                <Label htmlFor="spotUV" className="cursor-pointer font-normal">
+                <Label htmlFor="spotUV" className="cursor-pointer font-normal flex items-center gap-2">
                   <Sparkles className="inline h-4 w-4 mr-1" />
                   Spot UV
+                  <HelpTooltip content="Glossy raised effect on selected areas for contrast." />
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -513,9 +542,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   checked={includeEmbossing}
                   onCheckedChange={(checked) => setIncludeEmbossing(checked as boolean)}
                 />
-                <Label htmlFor="embossing" className="cursor-pointer font-normal">
+                <Label htmlFor="embossing" className="cursor-pointer font-normal flex items-center gap-2">
                   <Sparkles className="inline h-4 w-4 mr-1" />
                   EP (Embossing Press)
+                  <HelpTooltip content="Raised impression adds tactile depth to elements." />
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -524,9 +554,10 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   checked={includePocket}
                   onCheckedChange={(checked) => setIncludePocket(checked as boolean)}
                 />
-                <Label htmlFor="pocket" className="cursor-pointer font-normal">
+                <Label htmlFor="pocket" className="cursor-pointer font-normal flex items-center gap-2">
                   <Package className="inline h-4 w-4 mr-1" />
                   Pocket
+                  <HelpTooltip content="Inner pocket for inserts. Adds capacity and structure." />
                 </Label>
               </div>
             </div>
@@ -610,9 +641,14 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
           </CardContent>
         </Card>
 
-        <Card className="shadow-[var(--shadow-elegant)] bg-[var(--gradient-primary)] text-primary-foreground">
+        <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
-            <CardTitle className="text-2xl">Total Price</CardTitle>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-accent text-accent-foreground">
+                <IndianRupee className="h-5 w-5" />
+              </div>
+              Total Price
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -621,21 +657,21 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   <span className="text-lg">Total Cost:</span>
                   <span className="text-2xl font-bold">₹{results.totalCost.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
+                <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-lg">Selling Price (70% markup):</span>
-                  <span className="text-3xl font-bold text-green-300">₹{results.sellingPrice.toLocaleString('en-IN')}</span>
+                  <span className="text-3xl font-bold text-foreground">₹{results.sellingPrice.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-primary-foreground/20">
-                  <span className="text-sm opacity-90">Per Piece:</span>
-                  <span className="text-xl font-semibold">₹{results.perPieceCost.toFixed(2)}</span>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-sm text-muted-foreground">Per Piece:</span>
+                  <span className="text-xl font-semibold text-foreground">₹{results.perPieceCost.toFixed(2)}</span>
                 </div>
               </div>
               
               {/* PDF Download Button */}
-              <div className="pt-4 border-t border-primary-foreground/20">
+              <div className="pt-4 border-t">
                 <Button 
                   onClick={generatePDF}
-                  className="w-full bg-white text-primary hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+                  className="w-full"
                   size="lg"
                 >
                   <Download className="h-5 w-5 mr-2" />
