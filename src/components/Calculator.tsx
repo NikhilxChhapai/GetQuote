@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Box, Ruler, Layers, IndianRupee, FileText, Sparkles, Package, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 import jsPDF from 'jspdf';
 
 interface CalculatorProps {
@@ -336,6 +337,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                   <Ruler className="h-3 w-3" />
                   Length
                 </Label>
+                <HelpTooltip content="Outer length of the rigid box in inches (finished size)." />
                 <Input
                   id="length"
                   type="number"
@@ -352,6 +354,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                   <Ruler className="h-3 w-3" />
                   Width
                 </Label>
+                <HelpTooltip content="Outer width of the rigid box in inches (finished size)." />
                 <Input
                   id="width"
                   type="number"
@@ -368,6 +371,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                   <Ruler className="h-3 w-3" />
                   Height
                 </Label>
+                <HelpTooltip content="Outer height of the rigid box in inches (finished size)." />
                 <Input
                   id="height"
                   type="number"
@@ -385,6 +389,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 <Package className="h-3 w-3" />
                 Quantity
               </Label>
+              <HelpTooltip content="Total number of boxes required. Impacts sheet counts and pricing." />
               <Input
                 id="quantity"
                 type="number"
@@ -408,7 +413,10 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="boardThickness">Board Thickness</Label>
+              <Label htmlFor="boardThickness" className="flex items-center gap-2">
+                Board Thickness
+                <HelpTooltip content="Grey board thickness affects rigidity and cost. 1.7mm for light, 2.9mm for luxury." />
+              </Label>
               <Select value={boardThickness} onValueChange={setBoardThickness}>
                 <SelectTrigger id="boardThickness">
                   <SelectValue />
@@ -422,7 +430,10 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paperType">Paper Type</Label>
+              <Label htmlFor="paperType" className="flex items-center gap-2">
+                Paper Type
+                <HelpTooltip content="Outer wrap paper. Matt lam is economical; suede/plike are premium textures." />
+              </Label>
               <Select value={paperType} onValueChange={setPaperType}>
                 <SelectTrigger id="paperType">
                   <SelectValue />
@@ -455,8 +466,9 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 checked={includeFoiling}
                 onCheckedChange={(checked) => setIncludeFoiling(checked as boolean)}
               />
-              <Label htmlFor="foiling" className="cursor-pointer">
+              <Label htmlFor="foiling" className="cursor-pointer flex items-center gap-2">
                 Foiling (+₹{pricing.foilingBase})
+                <HelpTooltip content="Metallic foil stamping for logos/text. Fixed setup with per-sheet cost." />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -465,8 +477,9 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 checked={includeEmbossing}
                 onCheckedChange={(checked) => setIncludeEmbossing(checked as boolean)}
               />
-              <Label htmlFor="embossing" className="cursor-pointer">
+              <Label htmlFor="embossing" className="cursor-pointer flex items-center gap-2">
                 Embossing (+₹{pricing.embossingBase})
+                <HelpTooltip content="Raised impression adds tactile feel to elements. Setup + per-sheet." />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -475,8 +488,9 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
                 checked={includeSpotUV}
                 onCheckedChange={(checked) => setIncludeSpotUV(checked as boolean)}
               />
-              <Label htmlFor="spotUV" className="cursor-pointer">
+              <Label htmlFor="spotUV" className="cursor-pointer flex items-center gap-2">
                 Spot UV (+₹{pricing.spotUVBase})
+                <HelpTooltip content="Gloss varnish on select areas for contrast. Setup + per-sheet." />
               </Label>
             </div>
           </CardContent>
@@ -485,7 +499,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
 
       {/* Results Section */}
       <div className="space-y-6">
-        <Card className="shadow-[var(--shadow-card)] bg-gradient-to-br from-accent/10 to-transparent border-accent/20">
+        <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <IndianRupee className="h-6 w-6 text-accent" />
@@ -546,7 +560,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
               <div className="pt-4 border-t">
                 <Button 
                   onClick={generatePDF}
-                  className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300 hover:scale-105"
+                  className="w-full"
                   size="lg"
                 >
                   <Download className="h-5 w-5 mr-2" />

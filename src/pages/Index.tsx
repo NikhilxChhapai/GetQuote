@@ -127,7 +127,7 @@ const Index = () => {
                   <Quote className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent flex items-center justify-center">
-                  <Sparkles className="h-2.5 w-2.5 text-white" />
+                  <Sparkles className="h-2.5 w-2.5 text-accent-foreground" />
                 </div>
               </div>
               <div className="space-y-1">

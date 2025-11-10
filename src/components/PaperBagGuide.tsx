@@ -5,7 +5,7 @@ import { ShoppingBag, Ruler, Package, Sparkles, FileText } from "lucide-react";
 export const PaperBagGuide = () => {
   return (
     <Card className="shadow-[var(--shadow-card)]">
-      <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 text-2xl">
           <ShoppingBag className="h-6 w-6 text-primary" />
           Paper Bag Calculator Guide

@@ -274,15 +274,13 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
       {/* Input Section */}
       <div className="space-y-6">
         <Card className="shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-elegant)]">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-t-lg">
+          <CardHeader className="rounded-t-lg">
             <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-blue-600 text-white shadow-lg">
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-md">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent font-bold">
-                  Paper Bag Calculator
-                </span>
+                <span className="text-foreground font-bold">Paper Bag Calculator</span>
                 <div className="flex items-center gap-1 mt-1">
                   <Info className="h-3 w-3 text-yellow-500" />
                   <span className="text-xs text-muted-foreground font-normal">Professional Bag Manufacturing</span>
@@ -407,7 +405,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
 
       {/* Results Section */}
       <div className="space-y-6">
-        <Card className="shadow-[var(--shadow-card)] bg-gradient-to-br from-accent/10 to-transparent border-accent/20">
+        <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <IndianRupee className="h-6 w-6 text-accent" />
@@ -470,7 +468,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
               <div className="pt-4 border-t">
                 <Button 
                   onClick={generatePDF}
-                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 hover:scale-105"
+                  className="w-full"
                   size="lg"
                 >
                   <Download className="h-5 w-5 mr-2" />

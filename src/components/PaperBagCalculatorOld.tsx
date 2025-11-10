@@ -541,7 +541,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <Card className="shadow-[var(--shadow-card)] border-2 border-primary/10">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <ShoppingBag className="h-6 w-6 text-primary" />
             Paper Bag Price Calculator
@@ -697,7 +697,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
         </CardContent>
       </Card>
 
-      <Card className="shadow-[var(--shadow-elegant)] border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
+      <Card className="shadow-[var(--shadow-elegant)] border-2 border-primary/20">
         <CardHeader>
           <CardTitle className="text-2xl">Price Summary</CardTitle>
         </CardHeader>

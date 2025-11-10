@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 import { Download, ShoppingBag, Info, FileText, IndianRupee } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -141,31 +142,31 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
       
       // Flat Width Calculation - SBS2 uses L+G+1 formula (different from SBS1)
       const calculateSBS2FlatWidth = (l: number, g: number): number => {
-        const sum = l + g + 1;
-        if (sum < 12) return 12;
-        if (sum < 13) return 13;
-        if (sum < 14) return 14;
-        if (sum < 18) return 18;
-        if (sum <= 20) return 20;
-        if (sum <= 23) return 23;
-        if (sum <= 25) return 25;
-        if (sum <= 31) return 31;
-        return sum;
-      };
+      const sum = l + g + 1;
+      if (sum < 12) return 12;
+      if (sum < 13) return 13;
+      if (sum < 14) return 14;
+      if (sum < 18) return 18;
+      if (sum <= 20) return 20;
+      if (sum <= 23) return 23;
+      if (sum <= 25) return 25;
+      if (sum <= 31) return 31;
+      return sum;
+    };
 
       // Flat Height Calculation - SBS2 uses H+G*0.8+1 formula (same as SBS1)
       const calculateSBS2FlatHeight = (h: number, g: number): number => {
-        const sum = h + (g * 0.8) + 1;
-        if (sum < 12) return 12;
-        if (sum < 13) return 13;
-        if (sum < 14) return 14;
-        if (sum < 18) return 18;
-        if (sum <= 20) return 20;
-        if (sum <= 23) return 23;
-        if (sum <= 25) return 25;
-        if (sum <= 31) return 31;
-        return sum;
-      };
+      const sum = h + (g * 0.8) + 1;
+      if (sum < 12) return 12;
+      if (sum < 13) return 13;
+      if (sum < 14) return 14;
+      if (sum < 18) return 18;
+      if (sum <= 20) return 20;
+      if (sum <= 23) return 23;
+      if (sum <= 25) return 25;
+      if (sum <= 31) return 31;
+      return sum;
+    };
 
       flatWidth = calculateSBS2FlatWidth(length, gusset);
       flatHeight = calculateSBS2FlatHeight(height, gusset);
@@ -459,9 +460,9 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
     yPos += 12;
     
     if (bagType !== 'kraft') {
-      doc.text(`Lamination Cost:`, 30, yPos);
-      doc.text(`Rs. ${results.laminationCost.toLocaleString('en-IN')}`, 120, yPos);
-      yPos += 12;
+    doc.text(`Lamination Cost:`, 30, yPos);
+    doc.text(`Rs. ${results.laminationCost.toLocaleString('en-IN')}`, 120, yPos);
+    yPos += 12;
     }
     
     doc.text(`Die Cutting Cost:`, 30, yPos);
@@ -549,7 +550,10 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
           <CardContent className="space-y-6 pt-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="bagType">Paper Bag Type</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="bagType">Paper Bag Type</Label>
+                  <HelpTooltip content="Select the type of paper bag: SBS 2 Sheet, SBS 1 Sheet, Keycolor Paper, or Kraft Paper. Each type has different pricing formulas." />
+                </div>
                 <Select value={bagType} onValueChange={(value: PaperBagType) => setBagType(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select bag type" />
@@ -564,9 +568,12 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <div className="flex items-center gap-2">
                 <Label htmlFor="length">Length (inches)</Label>
+                  <HelpTooltip content="The length dimension of the paper bag in inches. This is the horizontal measurement when the bag is laid flat." />
+                </div>
                 <Input
                   id="length"
                   type="number"
@@ -576,10 +583,14 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   min="1"
                   step="0.1"
                   placeholder="Enter length"
+                  className="w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="height">Height (inches)</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="height">Height (inches)</Label>
+                  <HelpTooltip content="The height dimension of the paper bag in inches. This is the vertical measurement when the bag is standing upright." />
+                </div>
                 <Input
                   id="height"
                   type="number"
@@ -589,13 +600,17 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   min="1"
                   step="0.1"
                   placeholder="Enter height"
+                  className="w-full"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="gusset">Gusset (inches)</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="gusset">Gusset (inches)</Label>
+                  <HelpTooltip content="The gusset is the side fold that allows the bag to expand. Enter the width of the gusset in inches. This affects the flat width and height calculations." />
+                </div>
                 <Input
                   id="gusset"
                   type="number"
@@ -605,10 +620,14 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   min="0.5"
                   step="0.1"
                   placeholder="Enter gusset"
+                  className="w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <HelpTooltip content="The total number of paper bags to be manufactured. Higher quantities may have different pricing tiers for printing and other services." />
+                </div>
                 <Input
                   id="quantity"
                   type="number"
@@ -617,13 +636,17 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   onFocus={(e) => e.target.select()}
                   min="1"
                   placeholder="Enter quantity"
+                  className="w-full"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="paperGSM">Paper GSM</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="paperGSM">Paper GSM</Label>
+                  <HelpTooltip content="GSM (Grams per Square Meter) indicates the paper weight/thickness. Common values: 250-300 GSM for standard bags. Higher GSM means thicker, more durable paper." />
+                </div>
                 <Input
                   id="paperGSM"
                   type="number"
@@ -633,10 +656,14 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   min="200"
                   max="400"
                   placeholder="Enter GSM"
+                  className="w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="paperPrice">Paper Price (₹/sheet)</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="paperPrice">Paper Price (₹/sheet)</Label>
+                  <HelpTooltip content="The cost per sheet of paper in Indian Rupees. This price varies based on paper type, GSM, and supplier. Enter the current market price." />
+                </div>
                 <Input
                   id="paperPrice"
                   type="number"
@@ -645,24 +672,32 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   onFocus={(e) => e.target.select()}
                   min="1"
                   placeholder="Enter price"
+                  className="w-full"
                 />
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-              <Label className="text-base font-semibold">Special Treatments</Label>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-semibold">Special Treatments</Label>
+                <HelpTooltip content="Additional finishing options that enhance the appearance and quality of the paper bags. Each treatment adds to the final cost." />
+              </div>
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="foiling"
-                    checked={foiling}
-                    onCheckedChange={(checked) => setFoiling(checked as boolean)}
-                  />
-                  <Label htmlFor="foiling" className="cursor-pointer">
-                    Foiling (Premium finish)
-                  </Label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="foiling"
+                      checked={foiling}
+                      onCheckedChange={(checked) => setFoiling(checked as boolean)}
+                    />
+                    <Label htmlFor="foiling" className="cursor-pointer">
+                      Foiling (Premium finish)
+                    </Label>
+                  </div>
+                  <HelpTooltip content="Metallic foil stamping adds a premium, luxurious finish. Cost is calculated as MAX(quantity × 8, 3000) or MAX(sheets × 6, 3000) depending on bag type." />
                 </div>
                 {(bagType === 'sbs1' || bagType === 'sbs2') && (
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="spotUV"
@@ -673,11 +708,14 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                       Spot UV (Glossy coating)
                     </Label>
                   </div>
+                  <HelpTooltip content="Spot UV coating creates a glossy, raised effect on specific areas. Available for SBS 1 Sheet and SBS 2 Sheet bags. Cost: MAX(sheets × 5, 3000)." />
+                </div>
                 )}
                 {(bagType === 'keycolor' || bagType === 'kraft') && (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="embossing"
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="embossing"
                       checked={embossing}
                       onCheckedChange={(checked) => setEmbossing(checked as boolean)}
                     />
@@ -685,6 +723,8 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                       Embossing (Raised texture)
                     </Label>
                   </div>
+                  <HelpTooltip content="Embossing creates a raised or recessed design on the paper surface. Available for Keycolor and Kraft paper bags. Cost: MAX(sheets × 5, 3000)." />
+                </div>
                 )}
               </div>
             </div>
@@ -694,11 +734,13 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
 
       {/* Results Section */}
       <div className="space-y-6">
-        <Card className="shadow-[var(--shadow-card)] bg-gradient-to-br from-accent/10 to-transparent border-accent/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              <IndianRupee className="h-6 w-6 text-accent" />
-              Price Breakdown
+        <Card className="shadow-[var(--shadow-card)] border-border">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <div className="p-2 rounded-lg bg-accent text-accent-foreground">
+                <IndianRupee className="h-5 w-5" />
+              </div>
+              <span>Price Breakdown</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -712,10 +754,10 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                 <span className="font-medium">₹{results.printingCost.toFixed(2)}</span>
               </div>
               {bagType !== 'kraft' && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Lamination Cost</span>
-                  <span className="font-medium">₹{results.laminationCost.toFixed(2)}</span>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Lamination Cost</span>
+                <span className="font-medium">₹{results.laminationCost.toFixed(2)}</span>
+              </div>
               )}
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Die Cutting Cost</span>
@@ -765,7 +807,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
               <div className="pt-4 border-t">
                 <Button 
                   onClick={generatePDF}
-                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 hover:scale-105"
+                  className="w-full"
                   size="lg"
                 >
                   <Download className="h-5 w-5 mr-2" />

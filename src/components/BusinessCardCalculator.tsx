@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 import { IndianRupee, Printer, Sparkles, Layers, Download, FileText, Zap, Truck, Calculator as CalcIcon, Plus, Trash2 } from "lucide-react";
 import jsPDF from 'jspdf';
 import { ShippingCalculator } from "@/lib/shippingCalculator";
@@ -371,15 +372,13 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
     <div className="grid gap-4 lg:gap-6 md:grid-cols-2">
       {/* Input Section */}
       <Card className="h-fit">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-t-lg">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg">
+            <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-md">
               <Printer className="h-5 w-5" />
             </div>
             <div>
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
-                Digital Print Calculator
-              </span>
+              <span className="text-foreground font-bold">Digital Print Calculator</span>
               <div className="flex items-center gap-1 mt-1">
                 <Zap className="h-3 w-3 text-yellow-500" />
                 <span className="text-xs text-muted-foreground font-normal">Professional Quality Printing</span>
@@ -394,7 +393,10 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="width">Width (inches)</Label>
+              <Label htmlFor="width" className="flex items-center gap-2">
+                Width (inches)
+                <HelpTooltip content="Card width in inches. Typical size is 3.5 x 2 inches." />
+              </Label>
               <Input
                 id="width"
                 type="number"
@@ -407,7 +409,10 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="height">Height (inches)</Label>
+              <Label htmlFor="height" className="flex items-center gap-2">
+                Height (inches)
+                <HelpTooltip content="Card height in inches. Standard height is 2 inches." />
+              </Label>
               <Input
                 id="height"
                 type="number"
@@ -422,7 +427,10 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity</Label>
+            <Label htmlFor="quantity" className="flex items-center gap-2">
+              Quantity
+              <HelpTooltip content="Total number of cards. Includes a few extra sheets for wastage." />
+            </Label>
             <Input
               id="quantity"
               type="number"
@@ -435,7 +443,10 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="paperType">Paper Type</Label>
+            <Label htmlFor="paperType" className="flex items-center gap-2">
+              Paper Type
+              <HelpTooltip content="Select stock (e.g., 350 matt). Price depends on quantity tier." />
+            </Label>
             <Select value={paperType} onValueChange={setPaperType}>
               <SelectTrigger>
                 <SelectValue />
@@ -468,7 +479,10 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
           </div>
 
           <div className="space-y-4 pt-4 border-t">
-            <Label className="text-base font-semibold">Premium Treatments</Label>
+            <Label className="text-base font-semibold flex items-center gap-2">
+              Premium Treatments
+              <HelpTooltip content="Optional finishes such as foiling, raised UV, letterpress, etc." />
+            </Label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -741,71 +755,71 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground border-0">
+        <Card className="shadow-[var(--shadow-card)]">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+              <div className="p-2 rounded-lg bg-accent text-accent-foreground">
                 <IndianRupee className="h-6 w-6" />
               </div>
               <div>
-                <span>Total Quote</span>
+                <span className="text-foreground">Total Quote</span>
                 <div className="flex items-center gap-1 mt-1">
-                  <Sparkles className="h-3 w-3 text-yellow-300" />
-                  <span className="text-xs opacity-90 font-normal">Instant Pricing</span>
+                  <Sparkles className="h-3 w-3 text-yellow-500" />
+                  <span className="text-xs text-muted-foreground font-normal">Instant Pricing</span>
                 </div>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                <span className="text-sm opacity-90">Print Cost:</span>
-                <span className="text-lg font-medium">₹{results.totalCost.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                <span className="text-sm">Print Cost:</span>
+                <span className="text-lg font-medium text-foreground">₹{results.totalCost.toLocaleString('en-IN')}</span>
               </div>
               {results.addOnCosts > 0 && (
-                <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                  <span className="text-sm opacity-90 flex items-center gap-1">
+                <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                  <span className="text-sm flex items-center gap-1">
                     <Plus className="h-3 w-3" />
                     Add-ons:
                   </span>
-                  <span className="text-lg font-medium">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
+                  <span className="text-lg font-medium text-foreground">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                <span className="text-sm opacity-90">Subtotal:</span>
-                <span className="text-lg font-medium">₹{results.baseAmount.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                <span className="text-sm">Subtotal:</span>
+                <span className="text-lg font-medium text-foreground">₹{results.baseAmount.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                <span className="text-sm opacity-90 flex items-center gap-1">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                <span className="text-sm flex items-center gap-1">
                   <CalcIcon className="h-3 w-3" />
                   GST ({results.gstRate}%):
                 </span>
-                <span className="text-lg font-medium">₹{results.gstAmount.toLocaleString('en-IN')}</span>
+                <span className="text-lg font-medium text-foreground">₹{results.gstAmount.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                <span className="text-sm opacity-90 flex items-center gap-1">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                <span className="text-sm flex items-center gap-1">
                   <Truck className="h-3 w-3" />
                   Shipping ({results.shippingWeight}kg):
                 </span>
-                <span className="text-lg font-medium">
+                <span className="text-lg font-medium text-foreground">
                   {results.isFreeShipping ? 'FREE' : `₹${results.shippingCharges.toLocaleString('en-IN')}`}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30">
-                <span className="text-lg font-bold">Final Total:</span>
-                <span className="text-3xl font-bold">₹{results.finalTotal.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
+                <span className="text-lg font-bold text-foreground">Final Total:</span>
+                <span className="text-3xl font-bold text-foreground">₹{results.finalTotal.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
-                <span className="text-sm opacity-90">Per Piece Cost:</span>
-                <span className="text-xl font-semibold">₹{(results.finalTotal / quantity).toFixed(2)}</span>
+              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                <span className="text-sm">Per Piece Cost:</span>
+                <span className="text-xl font-semibold text-foreground">₹{(results.finalTotal / quantity).toFixed(2)}</span>
               </div>
             </div>
             
             {/* PDF Download Button */}
-            <div className="pt-4 border-t border-white/20">
+            <div className="pt-4 border-t">
               <Button 
                 onClick={generatePDF}
-                className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                className="w-full"
                 size="lg"
               >
                 <Download className="h-5 w-5 mr-2" />
