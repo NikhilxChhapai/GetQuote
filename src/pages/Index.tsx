@@ -3,11 +3,12 @@ import { Calculator } from "@/components/Calculator";
 import { BrochureCalculator } from "@/components/BrochureCalculator";
 import { BusinessCardCalculator } from "@/components/BusinessCardCalculator";
 import { PaperBagCalculator } from "@/components/PaperBagCalculatorNew";
+import { OffsetPrintingCalculator } from "@/components/OffsetPrintingCalculator";
 import { BoxPricingSettings } from "@/components/BoxPricingSettings";
 import { BrochurePricingSettings } from "@/components/BrochurePricingSettings";
 import { BusinessCardPricingSettings } from "@/components/BusinessCardPricingSettings";
 import { PaperBagPricingSettings } from "@/components/PaperBagPricingSettings";
-import { QuotationHistory } from "@/components/QuotationHistory";
+import { OffsetPrintingPricingSettings } from "@/components/OffsetPrintingPricingSettings";
 import { BoxGuide } from "@/components/BoxGuide";
 import { BrochureGuide } from "@/components/BrochureGuide";
 import { BusinessCardGuide } from "@/components/BusinessCardGuide";
@@ -18,8 +19,9 @@ import { HelpDialog } from "@/components/HelpDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag, Quote, Sparkles, Printer, Package, BookOpen, Zap, Download } from "lucide-react";
+import { Calculator as CalculatorIcon, Settings, FileText, CreditCard, HelpCircle, ShoppingBag, Quote, Sparkles, Printer, Package, BookOpen, Zap, Download, FileSpreadsheet } from "lucide-react";
 import { sbs2SheetsPricingData } from "@/data/paperBagPricing";
+import { OffsetPrintingSettings } from "@/types/offset";
 
 const Index = () => {
   const [userName, setUserName] = useState("");
@@ -111,6 +113,45 @@ const Index = () => {
     },
   });
 
+  const [offsetPrintingSettings, setOffsetPrintingSettings] = useState<OffsetPrintingSettings>({
+    paperProfiles: [
+      { id: "art-card-300", name: "Art Card (300 GSM)", defaultGSM: 300, pricePer500: 5000 },
+      { id: "art-card-350", name: "Art Card (350 GSM)", defaultGSM: 350, pricePer500: 5600 },
+      { id: "matt-200", name: "Matt 200 GSM", defaultGSM: 200, pricePer500: 3600 },
+    ],
+    sheetOptions: [
+      { id: "18x25", label: "18 × 25 cm", width: 18, height: 25 },
+      { id: "20x30", label: "20 × 30 cm", width: 20, height: 30 },
+      { id: "25x36", label: "25 × 36 cm", width: 25, height: 36 },
+    ],
+    printingSlabs: {
+      1000: 4000,
+      2000: 7000,
+      3000: 10000,
+      4000: 13000,
+      5000: 15000,
+    },
+    perSheetAboveMax: 3.5,
+    doubleSidedMultiplier: 2,
+    safetySheets: 150,
+    laminationPerThousand: 250,
+    embossingPerUnit: 15,
+    creasingPerThousand: 150,
+    cuttingPerThousand: 150,
+    packagingPerThousand: 150,
+    varnishDivisor: 900,
+    spotUV: {
+      uptoThreshold: 3000,
+      perSheetAbove: 2.5,
+    },
+    foiling: {
+      quantityThreshold: 1000,
+      baseCost: 5000,
+      perUnitAbove: 4,
+    },
+    markupMultiplier: 1.7,
+  });
+
   if (!userName) {
     return <WelcomeScreen onNameSubmit={handleNameSubmit} />;
   }
@@ -151,7 +192,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 lg:px-6 py-6 lg:py-8">
         <Tabs defaultValue="box" className="w-full">
-          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-3 sm:grid-cols-6 gap-2 mb-6 lg:mb-8 h-auto p-2 bg-muted rounded-lg border border-border">
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-3 sm:grid-cols-7 gap-2 mb-6 lg:mb-8 h-auto p-2 bg-muted rounded-lg border border-border">
             <TabsTrigger value="box" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-muted rounded-md p-2 sm:p-3">
               <Package className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs sm:text-sm font-medium">Box</span>
@@ -164,6 +205,10 @@ const Index = () => {
               <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs sm:text-sm font-medium hidden sm:inline">Digital Print</span>
               <span className="text-xs font-medium sm:hidden">Digital</span>
+            </TabsTrigger>
+            <TabsTrigger value="offset" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-muted rounded-md p-2 sm:p-3">
+              <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm font-medium">Offset</span>
             </TabsTrigger>
             <TabsTrigger value="paperbag" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-muted rounded-md p-2 sm:p-3">
               <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -191,6 +236,10 @@ const Index = () => {
             <BusinessCardCalculator pricing={businessCardPricing} userName={userName} />
           </TabsContent>
 
+          <TabsContent value="offset" className="mt-0">
+            <OffsetPrintingCalculator settings={offsetPrintingSettings} />
+          </TabsContent>
+
           <TabsContent value="paperbag" className="mt-0">
             <PaperBagCalculator userName={userName} />
           </TabsContent>
@@ -205,8 +254,8 @@ const Index = () => {
                   <TabsTrigger value="box-settings" className="text-xs sm:text-sm">Box</TabsTrigger>
                   <TabsTrigger value="brochure-settings" className="text-xs sm:text-sm">Brochure</TabsTrigger>
                   <TabsTrigger value="card-settings" className="text-xs sm:text-sm">Digital Print</TabsTrigger>
+                  <TabsTrigger value="offset-settings" className="text-xs sm:text-sm">Offset</TabsTrigger>
                   <TabsTrigger value="paperbag-settings" className="text-xs sm:text-sm">Paper Bag</TabsTrigger>
-                  <TabsTrigger value="quotation-history" className="text-xs sm:text-sm">Quotations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="box-settings">
@@ -242,6 +291,17 @@ const Index = () => {
                   </Card>
                 </TabsContent>
 
+                <TabsContent value="offset-settings">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Offset Printing Calculator Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <OffsetPrintingPricingSettings settings={offsetPrintingSettings} onUpdate={setOffsetPrintingSettings} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
                 <TabsContent value="paperbag-settings">
                   <Card>
                     <CardHeader>
@@ -253,9 +313,6 @@ const Index = () => {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="quotation-history">
-                  <QuotationHistory />
-                </TabsContent>
               </Tabs>
             </div>
             )}
