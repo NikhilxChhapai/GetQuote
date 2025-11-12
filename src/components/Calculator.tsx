@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { HelpTooltip } from "@/components/ui/help-tooltip";
 import jsPDF from 'jspdf';
+import { SecureCostReveal } from "@/components/SecureCostReveal";
 
 interface CalculatorProps {
   pricing: {
@@ -50,6 +51,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
     boxMakingCost: 0,
     totalPrice: 0,
     perBoxPrice: 0,
+    subtotalCost: 0,
   });
 
   useEffect(() => {
@@ -190,6 +192,7 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
       boxMakingCost,
       totalPrice,
       perBoxPrice,
+      subtotalCost: subtotal,
     });
   };
 
@@ -507,56 +510,68 @@ export const Calculator = ({ pricing }: CalculatorProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Board ({results.boardQty} sheets)</span>
-                <span className="font-medium">₹{results.totalBoardPrice.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Paper ({results.paperSheetsNeeded} sheets)</span>
-                <span className="font-medium">₹{results.totalPaperPrice.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Printing</span>
-                <span className="font-medium">₹{results.printingCost.toFixed(2)}</span>
-              </div>
-              {includeFoiling && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Foiling</span>
-                  <span className="font-medium">₹{results.foilingCost.toFixed(2)}</span>
-                </div>
-              )}
-              {includeEmbossing && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Embossing</span>
-                  <span className="font-medium">₹{results.embossingCost.toFixed(2)}</span>
-                </div>
-              )}
-              {includeSpotUV && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Spot UV</span>
-                  <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Box Making</span>
-                <span className="font-medium">₹{results.boxMakingCost.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <Separator />
-
             <div className="space-y-4 pt-2">
-              <div className="flex justify-between items-center text-lg">
-                <span className="font-semibold">Total Price</span>
-                <span className="font-bold text-accent">₹{results.totalPrice.toFixed(2)}</span>
+              <div className="flex flex-col gap-2 rounded-xl border border-accent/20 bg-accent/10 p-4">
+                <div className="flex justify-between items-center text-lg">
+                  <span className="font-semibold text-muted-foreground">Client Total</span>
+                  <span className="font-bold text-accent">₹{results.totalPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xl">
+                  <span className="font-semibold text-muted-foreground">Price per Box</span>
+                  <span className="font-bold text-accent">₹{results.perBoxPrice.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-2xl">
-                <span className="font-semibold">Price per Box</span>
-                <span className="font-bold text-accent">₹{results.perBoxPrice.toFixed(2)}</span>
-              </div>
-              
-              {/* PDF Download Button */}
+
+              <SecureCostReveal>
+                <Card className="shadow-none border border-dashed border-muted-foreground/30">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Internal Cost Breakdown</CardTitle>
+                    <CardDescription>Protected view – visible after entering the access password.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Board ({results.boardQty} sheets)</span>
+                      <span className="font-medium">₹{results.totalBoardPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Paper ({results.paperSheetsNeeded} sheets)</span>
+                      <span className="font-medium">₹{results.totalPaperPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Printing</span>
+                      <span className="font-medium">₹{results.printingCost.toFixed(2)}</span>
+                    </div>
+                    {includeFoiling && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Foiling</span>
+                        <span className="font-medium">₹{results.foilingCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {includeEmbossing && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Embossing</span>
+                        <span className="font-medium">₹{results.embossingCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {includeSpotUV && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Spot UV</span>
+                        <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Box Making</span>
+                      <span className="font-medium">₹{results.boxMakingCost.toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-semibold text-muted-foreground">Actual Cost (Subtotal)</span>
+                      <span className="font-semibold">₹{results.subtotalCost.toFixed(2)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </SecureCostReveal>
+
               <div className="pt-4 border-t">
                 <Button 
                   onClick={generatePDF}

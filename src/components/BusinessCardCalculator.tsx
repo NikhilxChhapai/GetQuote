@@ -10,6 +10,7 @@ import { IndianRupee, Printer, Sparkles, Layers, Download, FileText, Zap, Truck,
 import jsPDF from 'jspdf';
 import { ShippingCalculator } from "@/lib/shippingCalculator";
 import { QuotationLogger } from "@/lib/quotationLogger";
+import { SecureCostReveal } from "@/components/SecureCostReveal";
 
 interface BusinessCardPricing {
   paperTypes: {
@@ -668,92 +669,93 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
 
       {/* Results Section */}
       <div className="space-y-4 lg:space-y-6">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <IndianRupee className="h-5 w-5 text-primary" />
-              Price Breakdown
-            </CardTitle>
-            <CardDescription>Detailed cost analysis for your business cards</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">UPS per Sheet</span>
-                <span className="text-sm">{results.upsPerSheet} cards</span>
+        <SecureCostReveal>
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <IndianRupee className="h-5 w-5 text-primary" />
+                Internal Cost Breakdown
+              </CardTitle>
+              <CardDescription>Unlock to review production costs and process breakdown.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">UPS per Sheet</span>
+                  <span className="text-sm">{results.upsPerSheet} cards</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Sheets Needed</span>
+                  <span className="text-sm">{results.sheetsNeeded} sheets</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Paper Cost</span>
+                  <span className="text-sm font-mono">₹{results.paperCost.toLocaleString('en-IN')}</span>
+                </div>
+                {treatments.foilingDigital && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Foiling Digital</span>
+                    <span className="text-sm font-mono">₹{results.foilingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.raisedUV && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Raised UV</span>
+                    <span className="text-sm font-mono">₹{results.raisedUVCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.foilpress && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Foilpress</span>
+                    <span className="text-sm font-mono">₹{results.foilpressCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.letterpress && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Letterpress</span>
+                    <span className="text-sm font-mono">₹{results.letterpressCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.embossing && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Embossing</span>
+                    <span className="text-sm font-mono">₹{results.embossingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.electroplating && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Electroplating</span>
+                    <span className="text-sm font-mono">₹{results.electroplatingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.edgepaint && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Edge Paint</span>
+                    <span className="text-sm font-mono">₹{results.edgepaintCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.edgeGilding && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Edge Gilding</span>
+                    <span className="text-sm font-mono">₹{results.edgeGildingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.laserCutting && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Laser Cutting</span>
+                    <span className="text-sm font-mono">₹{results.laserCuttingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {treatments.stickerCutting && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Sticker Cutting</span>
+                    <span className="text-sm font-mono">₹{results.stickerCuttingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Sheets Needed</span>
-                <span className="text-sm">{results.sheetsNeeded} sheets</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Paper Cost</span>
-                <span className="text-sm font-mono">₹{results.paperCost.toLocaleString('en-IN')}</span>
-              </div>
-              
-              {treatments.foilingDigital && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Foiling Digital</span>
-                  <span className="text-sm font-mono">₹{results.foilingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.raisedUV && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Raised UV</span>
-                  <span className="text-sm font-mono">₹{results.raisedUVCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.foilpress && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Foilpress</span>
-                  <span className="text-sm font-mono">₹{results.foilpressCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.letterpress && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Letterpress</span>
-                  <span className="text-sm font-mono">₹{results.letterpressCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.embossing && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Embossing</span>
-                  <span className="text-sm font-mono">₹{results.embossingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.electroplating && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Electroplating</span>
-                  <span className="text-sm font-mono">₹{results.electroplatingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.edgepaint && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Edge Paint</span>
-                  <span className="text-sm font-mono">₹{results.edgepaintCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.edgeGilding && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Edge Gilding</span>
-                  <span className="text-sm font-mono">₹{results.edgeGildingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.laserCutting && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Laser Cutting</span>
-                  <span className="text-sm font-mono">₹{results.laserCuttingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {treatments.stickerCutting && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Sticker Cutting</span>
-                  <span className="text-sm font-mono">₹{results.stickerCuttingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </SecureCostReveal>
 
         <Card className="shadow-[var(--shadow-card)]">
           <CardHeader className="pb-4">
@@ -762,49 +764,16 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
                 <IndianRupee className="h-6 w-6" />
               </div>
               <div>
-                <span className="text-foreground">Total Quote</span>
+                <span className="text-foreground">Client Quote</span>
                 <div className="flex items-center gap-1 mt-1">
                   <Sparkles className="h-3 w-3 text-yellow-500" />
-                  <span className="text-xs text-muted-foreground font-normal">Instant Pricing</span>
+                  <span className="text-xs text-muted-foreground font-normal">Markup included</span>
                 </div>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
-                <span className="text-sm">Print Cost:</span>
-                <span className="text-lg font-medium text-foreground">₹{results.totalCost.toLocaleString('en-IN')}</span>
-              </div>
-              {results.addOnCosts > 0 && (
-                <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
-                  <span className="text-sm flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Add-ons:
-                  </span>
-                  <span className="text-lg font-medium text-foreground">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
-                <span className="text-sm">Subtotal:</span>
-                <span className="text-lg font-medium text-foreground">₹{results.baseAmount.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
-                <span className="text-sm flex items-center gap-1">
-                  <CalcIcon className="h-3 w-3" />
-                  GST ({results.gstRate}%):
-                </span>
-                <span className="text-lg font-medium text-foreground">₹{results.gstAmount.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
-                <span className="text-sm flex items-center gap-1">
-                  <Truck className="h-3 w-3" />
-                  Shipping ({results.shippingWeight}kg):
-                </span>
-                <span className="text-lg font-medium text-foreground">
-                  {results.isFreeShipping ? 'FREE' : `₹${results.shippingCharges.toLocaleString('en-IN')}`}
-                </span>
-              </div>
               <div className="flex justify-between items-center p-3 rounded-lg bg-secondary">
                 <span className="text-lg font-bold text-foreground">Final Total:</span>
                 <span className="text-3xl font-bold text-foreground">₹{results.finalTotal.toLocaleString('en-IN')}</span>
@@ -813,6 +782,44 @@ export const BusinessCardCalculator = ({ pricing, userName = "Guest" }: Business
                 <span className="text-sm">Per Piece Cost:</span>
                 <span className="text-xl font-semibold text-foreground">₹{(results.finalTotal / quantity).toFixed(2)}</span>
               </div>
+
+              <SecureCostReveal triggerLabel="Unlock Actual Cost">
+                <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/20 p-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Print Cost</span>
+                    <span className="text-sm font-semibold">₹{results.totalCost.toLocaleString('en-IN')}</span>
+                  </div>
+                  {results.addOnCosts > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Plus className="h-3 w-3" />
+                        Add-ons
+                      </span>
+                      <span className="text-sm font-semibold">₹{results.addOnCosts.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Subtotal</span>
+                    <span className="text-sm font-semibold">₹{results.baseAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <CalcIcon className="h-3 w-3" />
+                      GST ({results.gstRate}%)
+                    </span>
+                    <span className="text-sm font-semibold">₹{results.gstAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Truck className="h-3 w-3" />
+                      Shipping ({results.shippingWeight}kg)
+                    </span>
+                    <span className="text-sm font-semibold">
+                      {results.isFreeShipping ? 'FREE' : `₹${results.shippingCharges.toLocaleString('en-IN')}`}
+                    </span>
+                  </div>
+                </div>
+              </SecureCostReveal>
             </div>
             
             {/* PDF Download Button */}

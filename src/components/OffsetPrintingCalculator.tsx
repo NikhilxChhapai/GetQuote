@@ -44,6 +44,7 @@ import {
 } from "@/types/offset";
 import { calculateOffsetPrinting } from "@/lib/offsetCalculator";
 import jsPDF from "jspdf";
+import { SecureCostReveal } from "@/components/SecureCostReveal";
 
 interface OffsetPrintingCalculatorProps {
   settings: OffsetPrintingSettings;
@@ -583,23 +584,17 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
             <CardDescription>Markup multiplier: {settings.markupMultiplier.toFixed(2)}×</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-4 rounded-xl border bg-muted/40 p-4 sm:grid-cols-3">
+            <div className="grid gap-4 rounded-xl border bg-muted/40 p-4 sm:grid-cols-2">
               <div>
-                <p className="text-sm text-muted-foreground">Total Cost</p>
+                <p className="text-sm text-muted-foreground">Client Total</p>
                 <p className="text-xl font-semibold text-foreground">
                   ₹{formatNumber(results.totalCostWithMarkup)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Per Unit</p>
+                <p className="text-sm text-muted-foreground">Price per Unit</p>
                 <p className="text-xl font-semibold text-foreground">
                   ₹{formatNumber(results.perUnitCost)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Subtotal</p>
-                <p className="text-xl font-semibold text-foreground">
-                  ₹{formatNumber(results.subtotalCost)}
                 </p>
               </div>
             </div>
@@ -621,72 +616,83 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
                 <span className="text-muted-foreground">Wastage %</span>
                 <span className="font-medium">{(results.wastagePercent * 100).toFixed(2)}%</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Sheet Price</span>
-                <span className="font-medium">₹{formatNumber(results.sheetPrice)}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Total Paper Cost</span>
-                <span className="font-medium">₹{formatNumber(results.totalPaperCost)}</span>
-              </div>
             </div>
 
-            <Separator />
+            <SecureCostReveal>
+              <div className="space-y-4 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground">Actual cost subtotal</span>
+                    <p className="text-lg font-semibold">₹{formatNumber(results.subtotalCost)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground">Sheet Price</span>
+                    <p className="text-lg font-semibold">₹{formatNumber(results.sheetPrice)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground">Total Paper Cost</span>
+                    <p className="text-lg font-semibold">₹{formatNumber(results.totalPaperCost)}</p>
+                  </div>
+                </div>
 
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Printing Cost</span>
-                <span className="font-medium">₹{formatNumber(results.printingCost)}</span>
+                <Separator />
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Printing Cost</span>
+                    <span className="font-medium">₹{formatNumber(results.printingCost)}</span>
+                  </div>
+                  {results.laminationCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Lamination</span>
+                      <span className="font-medium">₹{formatNumber(results.laminationCost)}</span>
+                    </div>
+                  )}
+                  {results.varnishCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Varnish</span>
+                      <span className="font-medium">₹{formatNumber(results.varnishCost)}</span>
+                    </div>
+                  )}
+                  {results.spotUVCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Spot UV</span>
+                      <span className="font-medium">₹{formatNumber(results.spotUVCost)}</span>
+                    </div>
+                  )}
+                  {results.foilingCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Foiling</span>
+                      <span className="font-medium">₹{formatNumber(results.foilingCost)}</span>
+                    </div>
+                  )}
+                  {results.embossingCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Embossing</span>
+                      <span className="font-medium">₹{formatNumber(results.embossingCost)}</span>
+                    </div>
+                  )}
+                  {results.creasingCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Creasing</span>
+                      <span className="font-medium">₹{formatNumber(results.creasingCost)}</span>
+                    </div>
+                  )}
+                  {results.cuttingCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cutting</span>
+                      <span className="font-medium">₹{formatNumber(results.cuttingCost)}</span>
+                    </div>
+                  )}
+                  {results.packagingCost > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Packaging</span>
+                      <span className="font-medium">₹{formatNumber(results.packagingCost)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              {results.laminationCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Lamination</span>
-                  <span className="font-medium">₹{formatNumber(results.laminationCost)}</span>
-                </div>
-              )}
-              {results.varnishCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Varnish</span>
-                  <span className="font-medium">₹{formatNumber(results.varnishCost)}</span>
-                </div>
-              )}
-              {results.spotUVCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Spot UV</span>
-                  <span className="font-medium">₹{formatNumber(results.spotUVCost)}</span>
-                </div>
-              )}
-              {results.foilingCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Foiling</span>
-                  <span className="font-medium">₹{formatNumber(results.foilingCost)}</span>
-                </div>
-              )}
-              {results.embossingCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Embossing</span>
-                  <span className="font-medium">₹{formatNumber(results.embossingCost)}</span>
-                </div>
-              )}
-              {results.creasingCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Creasing</span>
-                  <span className="font-medium">₹{formatNumber(results.creasingCost)}</span>
-                </div>
-              )}
-              {results.cuttingCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Cutting</span>
-                  <span className="font-medium">₹{formatNumber(results.cuttingCost)}</span>
-                </div>
-              )}
-              {results.packagingCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Packaging</span>
-                  <span className="font-medium">₹{formatNumber(results.packagingCost)}</span>
-                </div>
-              )}
-            </div>
+            </SecureCostReveal>
 
             <div className="pt-4">
               <Button className="w-full" size="lg" onClick={handleDownloadPDF}>

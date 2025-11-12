@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HelpTooltip } from "@/components/ui/help-tooltip";
 import { Download, ShoppingBag, Info, FileText, IndianRupee } from "lucide-react";
 import jsPDF from "jspdf";
+import { SecureCostReveal } from "@/components/SecureCostReveal";
 
 interface PaperBagCalculatorProps {
   userName: string;
@@ -734,86 +735,109 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
 
       {/* Results Section */}
       <div className="space-y-6">
-        <Card className="shadow-[var(--shadow-card)] border-border">
+        <SecureCostReveal>
+          <Card className="shadow-[var(--shadow-card)] border-border">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="p-2 rounded-lg bg-accent text-accent-foreground">
+                  <IndianRupee className="h-5 w-5" />
+                </div>
+                <span>Internal Cost Breakdown</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Paper Cost ({results.totalSheetsNeeded} sheets)</span>
+                  <span className="font-medium">₹{results.totalPaperCost.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Printing Cost</span>
+                  <span className="font-medium">₹{results.printingCost.toFixed(2)}</span>
+                </div>
+                {bagType !== 'kraft' && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Lamination Cost</span>
+                    <span className="font-medium">₹{results.laminationCost.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Die Cutting Cost</span>
+                  <span className="font-medium">₹{results.dieCuttingCost.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Bag Making Cost</span>
+                  <span className="font-medium">₹{results.bagMakingCost.toFixed(2)}</span>
+                </div>
+                {foiling && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Foiling Cost</span>
+                    <span className="font-medium">₹{results.foilingCost.toFixed(2)}</span>
+                  </div>
+                )}
+                {spotUV && (bagType === 'sbs1' || bagType === 'sbs2') && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Spot UV Cost</span>
+                    <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
+                  </div>
+                )}
+                {embossing && (bagType === 'keycolor' || bagType === 'kraft') && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Embossing Cost</span>
+                    <span className="font-medium">₹{results.embossingCost.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center text-lg">
+                  <span className="font-semibold">Actual Production Cost</span>
+                  <span className="font-bold">₹{results.totalCost.toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </SecureCostReveal>
+
+        <Card className="shadow-[var(--shadow-card)]">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2 text-xl">
               <div className="p-2 rounded-lg bg-accent text-accent-foreground">
                 <IndianRupee className="h-5 w-5" />
               </div>
-              <span>Price Breakdown</span>
+              <span>Client Quote</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Paper Cost ({results.totalSheetsNeeded} sheets)</span>
-                <span className="font-medium">₹{results.totalPaperCost.toFixed(2)}</span>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center text-xl bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+                <span className="font-semibold text-green-700 dark:text-green-300">Selling Price (with markup)</span>
+                <span className="font-bold text-green-700 dark:text-green-300">₹{results.sellingPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Printing Cost</span>
-                <span className="font-medium">₹{results.printingCost.toFixed(2)}</span>
+              <div className="flex justify-between items-center text-lg">
+                <span className="font-semibold">Price per Bag</span>
+                <span className="font-bold text-accent">₹{results.perBagPrice.toFixed(2)}</span>
               </div>
-              {bagType !== 'kraft' && (
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Lamination Cost</span>
-                <span className="font-medium">₹{results.laminationCost.toFixed(2)}</span>
-              </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Die Cutting Cost</span>
-                <span className="font-medium">₹{results.dieCuttingCost.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Bag Making Cost</span>
-                <span className="font-medium">₹{results.bagMakingCost.toFixed(2)}</span>
-              </div>
-              {foiling && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Foiling Cost</span>
-                  <span className="font-medium">₹{results.foilingCost.toFixed(2)}</span>
+
+              <SecureCostReveal triggerLabel="Unlock Actual Cost">
+                <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/20 p-4 space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Actual Production Cost</span>
+                    <span className="font-semibold">₹{results.totalCost.toFixed(2)}</span>
+                  </div>
                 </div>
-              )}
-              {spotUV && (bagType === 'sbs1' || bagType === 'sbs2') && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Spot UV Cost</span>
-                  <span className="font-medium">₹{results.spotUVCost.toFixed(2)}</span>
-                </div>
-              )}
-              {embossing && (bagType === 'keycolor' || bagType === 'kraft') && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Embossing Cost</span>
-                  <span className="font-medium">₹{results.embossingCost.toFixed(2)}</span>
-                </div>
-              )}
+              </SecureCostReveal>
             </div>
 
-            <div className="border-t pt-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-lg">
-                  <span className="font-semibold">Total Cost</span>
-                  <span className="font-bold text-accent">₹{results.totalCost.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xl bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
-                  <span className="font-semibold text-green-700 dark:text-green-300">Selling Price (70% markup)</span>
-                  <span className="font-bold text-green-700 dark:text-green-300">₹{results.sellingPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-lg">
-                  <span className="font-semibold">Price per Bag</span>
-                  <span className="font-bold text-accent">₹{results.perBagPrice.toFixed(2)}</span>
-                </div>
-              </div>
-              
-              {/* PDF Download Button */}
-              <div className="pt-4 border-t">
-                <Button 
-                  onClick={generatePDF}
-                  className="w-full"
-                  size="lg"
-                >
-                  <Download className="h-5 w-5 mr-2" />
-                  Download PDF Quote
-                </Button>
-              </div>
+            {/* PDF Download Button */}
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={generatePDF}
+                className="w-full"
+                size="lg"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Download PDF Quote
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -844,10 +868,10 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                   </div>
                 </div>
               </div>
-              
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <h4 className="font-semibold text-blue-600 mb-2">Production Details</h4>
-                <div className="space-y-2">
+
+              <SecureCostReveal triggerLabel="Unlock Production Details">
+                <div className="p-3 bg-muted/30 rounded-lg space-y-2">
+                  <h4 className="font-semibold text-blue-600 mb-1">Production Details</h4>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Paper Cost/Sheet:</span>
                     <span className="font-medium">₹{results.paperCostPerSheet.toFixed(2)}</span>
@@ -861,7 +885,7 @@ export const PaperBagCalculator = ({ userName }: PaperBagCalculatorProps) => {
                     <span className="font-medium">70% (1.7x)</span>
                   </div>
                 </div>
-              </div>
+              </SecureCostReveal>
             </div>
           </CardContent>
         </Card>

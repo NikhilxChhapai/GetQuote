@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ShippingCalculator } from "@/lib/shippingCalculator";
 import { QuotationLogger } from "@/lib/quotationLogger";
 import { HelpTooltip } from "@/components/ui/help-tooltip";
+import { SecureCostReveal } from "@/components/SecureCostReveal";
 
 interface BrochurePricing {
   paperGSMPrices: {
@@ -567,79 +568,81 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
 
       {/* Results Section */}
       <div className="space-y-6">
-        <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IndianRupee className="h-5 w-5 text-primary" />
-              Price Breakdown
-            </CardTitle>
-            <CardDescription>Detailed cost analysis for your brochure</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Flat Dimensions</span>
-                <span className="text-sm">{results.flatWidth}" × {results.flatHeight}"</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Sheets Needed</span>
-                <span className="text-sm text-foreground">{results.totalSheetsNeeded} sheets</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Paper Cost</span>
-                <span className="text-sm font-mono text-foreground">₹{results.totalPaperCost.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Printing Cost</span>
-                <span className="text-sm font-mono text-foreground">₹{results.printingCost.toLocaleString('en-IN')}</span>
-              </div>
-              {(brochureCategory === 'standard' || brochureCategory === 'gatefold300') && includeLamination && (
+        <SecureCostReveal>
+          <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IndianRupee className="h-5 w-5 text-primary" />
+                Internal Cost Breakdown
+              </CardTitle>
+              <CardDescription>Actual cost details are restricted and require the access password.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm font-medium">Lamination Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.laminationCost.toLocaleString('en-IN')}</span>
+                  <span className="text-sm font-medium">Flat Dimensions</span>
+                  <span className="text-sm">{results.flatWidth}" × {results.flatHeight}"</span>
                 </div>
-              )}
-              {brochureCategory === 'montblanc' && includeVarnish && (
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm font-medium">Varnish Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.varnishCost.toLocaleString('en-IN')}</span>
+                  <span className="text-sm font-medium">Sheets Needed</span>
+                  <span className="text-sm text-foreground">{results.totalSheetsNeeded} sheets</span>
                 </div>
-              )}
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Die Cutting Cost</span>
-                <span className="text-sm font-mono text-foreground">₹{results.dieCuttingCost.toLocaleString('en-IN')}</span>
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Paper Cost</span>
+                  <span className="text-sm font-mono text-foreground">₹{results.totalPaperCost.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Printing Cost</span>
+                  <span className="text-sm font-mono text-foreground">₹{results.printingCost.toLocaleString('en-IN')}</span>
+                </div>
+                {(brochureCategory === 'standard' || brochureCategory === 'gatefold300') && includeLamination && (
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium">Lamination Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.laminationCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {brochureCategory === 'montblanc' && includeVarnish && (
+                  <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium">Varnish Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.varnishCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Die Cutting Cost</span>
+                  <span className="text-sm font-mono text-foreground">₹{results.dieCuttingCost.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                  <span className="text-sm font-medium">Packing Cost</span>
+                  <span className="text-sm font-mono text-foreground">₹{results.packingCost.toLocaleString('en-IN')}</span>
+                </div>
+                {includeFoiling && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Foiling Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.foilingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {includeSpotUV && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Spot UV Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.spotUVCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {includeEmbossing && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Embossing Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.embossingCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {includePocket && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">Pocket Cost</span>
+                    <span className="text-sm font-mono text-foreground">₹{results.pocketCost.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Packing Cost</span>
-                <span className="text-sm font-mono text-foreground">₹{results.packingCost.toLocaleString('en-IN')}</span>
-              </div>
-              {includeFoiling && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Foiling Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.foilingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {includeSpotUV && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Spot UV Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.spotUVCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {includeEmbossing && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Embossing Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.embossingCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {includePocket && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm font-medium">Pocket Cost</span>
-                  <span className="text-sm font-mono text-foreground">₹{results.pocketCost.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </SecureCostReveal>
 
         <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
@@ -647,16 +650,13 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
               <div className="p-2 rounded-lg bg-accent text-accent-foreground">
                 <IndianRupee className="h-5 w-5" />
               </div>
-              Total Price
+              Client Quote
             </CardTitle>
+            <CardDescription>Prices shown include your configured markup.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg">Total Cost:</span>
-                  <span className="text-2xl font-bold">₹{results.totalCost.toLocaleString('en-IN')}</span>
-                </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-lg">Selling Price (70% markup):</span>
                   <span className="text-3xl font-bold text-foreground">₹{results.sellingPrice.toLocaleString('en-IN')}</span>
@@ -665,6 +665,15 @@ export const BrochureCalculator = ({ pricing, userName = "Guest" }: BrochureCalc
                   <span className="text-sm text-muted-foreground">Per Piece:</span>
                   <span className="text-xl font-semibold text-foreground">₹{results.perPieceCost.toFixed(2)}</span>
                 </div>
+
+                <SecureCostReveal triggerLabel="Unlock Actual Cost">
+                  <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/20 p-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Actual Production Cost</span>
+                      <span className="text-sm font-semibold">₹{results.totalCost.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </SecureCostReveal>
               </div>
               
               {/* PDF Download Button */}

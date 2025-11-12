@@ -352,7 +352,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border/50 bg-card/50 backdrop-blur-sm mt-12 lg:mt-16">
         <div className="container mx-auto px-4 lg:px-6 py-6 text-center text-xs sm:text-sm text-muted-foreground">
-          <p>Professional pricing calculator for boxes, brochures, business cards & paper bags</p>
+          <p>Made with love ❤️ by Nikhil</p>
         </div>
       </footer>
     </div>
