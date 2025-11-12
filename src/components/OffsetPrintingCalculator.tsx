@@ -58,6 +58,9 @@ const PAPER_PRICE_MAP: Record<string, number> = {
 const resolvePaperPrice = (paperType: string, fallback: number) =>
   PAPER_PRICE_MAP[paperType] ?? fallback;
 
+const formatNumber = (value: number, fractionDigits = 2) =>
+  Number.isFinite(value) ? value.toFixed(fractionDigits) : "0.00";
+
 interface OffsetPrintingCalculatorProps {
   settings: OffsetPrintingSettings;
 }
@@ -65,7 +68,7 @@ interface OffsetPrintingCalculatorProps {
 export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorProps) => {
   const defaultPaperProfile = settings.paperProfiles[0];
   const defaultSheetOption = settings.sheetOptions[0];
-  const machineConfigs = settings.machineConfigs ?? [];
+  const machineConfigs = useMemo(() => settings.machineConfigs ?? [], [settings.machineConfigs]);
   const defaultMachine = machineConfigs[0];
   const defaultPreset = defaultMachine?.presets[0];
 
