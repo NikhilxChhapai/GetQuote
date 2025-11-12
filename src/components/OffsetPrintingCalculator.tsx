@@ -65,33 +65,66 @@ interface OffsetPrintingCalculatorProps {
 export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorProps) => {
   const defaultPaperProfile = settings.paperProfiles[0];
   const defaultSheetOption = settings.sheetOptions[0];
+  const machineConfigs = settings.machineConfigs ?? [];
+  const defaultMachine = machineConfigs[0];
+  const defaultPreset = defaultMachine?.presets[0];
+
+  const defaultProfileMatch = defaultPreset
+    ? settings.paperProfiles.find(
+        (profile) =>
+          profile.id.toLowerCase() === defaultPreset.paperType.toLowerCase() ||
+          profile.name.toLowerCase() === defaultPreset.paperType.toLowerCase(),
+      )?.id
+    : undefined;
+
+  const defaultProductWidthCm = defaultPreset ? parseFloat((defaultPreset.productWidthIn * 2.54).toFixed(2)) : 5;
+  const defaultProductHeightCm = defaultPreset ? parseFloat((defaultPreset.productHeightIn * 2.54).toFixed(2)) : 8;
+  const defaultQuantity = defaultPreset?.quantity ?? 2000;
+  const defaultPaperPrice = defaultPreset
+    ? resolvePaperPrice(defaultPreset.paperType, defaultPaperProfile?.pricePer500 ?? 5000)
+    : defaultPaperProfile?.pricePer500 ?? 5000;
+  const defaultGSM = defaultPreset?.gsm ?? defaultPaperProfile?.defaultGSM ?? 300;
+  const defaultPrintingSide = defaultPreset?.printingSide ?? "both";
+  const defaultSheetId = defaultPreset
+    ? settings.sheetOptions.find(
+        (item) =>
+          Math.abs(item.width - parseFloat((defaultPreset.sheetWidthIn * 2.54).toFixed(2))) < 0.25 &&
+          Math.abs(item.height - parseFloat((defaultPreset.sheetHeightIn * 2.54).toFixed(2))) < 0.25,
+      )?.id
+    : defaultSheetOption?.id;
+
+  const [selectedMachineId, setSelectedMachineId] = useState(defaultMachine?.id ?? "");
+  const [selectedPresetQuantity, setSelectedPresetQuantity] = useState(defaultQuantity);
 
   const [inputs, setInputs] = useState<OffsetCalculatorInputs>({
-    productWidth: 5,
-    productHeight: 8,
-    quantity: 2000,
-    selectedPaperProfileId: defaultPaperProfile?.id ?? "custom",
-    gsm: defaultPaperProfile?.defaultGSM ?? 300,
-    paperPricePer500: defaultPaperProfile?.pricePer500 ?? 5000,
-    printingSide: "both",
-    includeLamination: false,
-    includeVarnish: false,
-    includeSpotUV: false,
-    includeFoiling: false,
-    includeEmbossing: false,
-    includeCreasing: false,
+    productWidth: defaultProductWidthCm,
+    productHeight: defaultProductHeightCm,
+    quantity: defaultQuantity,
+    selectedPaperProfileId: defaultProfileMatch ?? defaultPaperProfile?.id ?? "custom",
+    gsm: defaultGSM,
+    paperPricePer500: defaultPaperPrice,
+    printingSide: defaultPrintingSide,
+    includeLamination: defaultPreset?.includeLamination ?? false,
+    includeVarnish: defaultPreset?.includeVarnish ?? false,
+    includeSpotUV: defaultPreset?.includeSpotUV ?? false,
+    includeFoiling: defaultPreset?.includeFoiling ?? false,
+    includeEmbossing: defaultPreset?.includeEmbossing ?? false,
+    includeCreasing: defaultPreset?.includeCreasing ?? false,
     includeCutting: true,
     includePackaging: true,
-    includeEnvelope: false,
-    sheetSelectionMode: "auto",
-    selectedSheetId: defaultSheetOption?.id,
+    includeEnvelope: defaultPreset?.includeEnvelope ?? false,
+    sheetSelectionMode: defaultSheetId ? "manual" : "auto",
+    selectedSheetId: defaultSheetId,
   });
 
   const [results, setResults] = useState(() =>
     calculateOffsetPrinting(inputs, settings),
   );
 
-  const currentMachine = useMemo(() => machineConfigs.find((machine) => machine.id === selectedMachineId), [machineConfigs, selectedMachineId]);
+  const currentMachine = useMemo(
+    () => machineConfigs.find((machine) => machine.id === selectedMachineId),
+    [machineConfigs, selectedMachineId],
+  );
   const currentPreset = useMemo(
     () => currentMachine?.presets.find((preset) => preset.quantity === selectedPresetQuantity),
     [currentMachine, selectedPresetQuantity],
@@ -146,13 +179,6 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     });
     return map;
   }, [results.sheetEvaluations]);
-
-  const machineConfigs = settings.machineConfigs;
-  const defaultMachine = machineConfigs[0];
-  const defaultPreset = defaultMachine?.presets[0];
-
-  const [selectedMachineId, setSelectedMachineId] = useState(defaultMachine?.id ?? "");
-  const [selectedPresetQuantity, setSelectedPresetQuantity] = useState(defaultPreset?.quantity ?? inputs.quantity);
 
   const handleNumberChange = (key: keyof OffsetCalculatorInputs) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = event.target.value;
