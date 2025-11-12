@@ -115,23 +115,27 @@ const Index = () => {
 
   const [offsetPrintingSettings, setOffsetPrintingSettings] = useState<OffsetPrintingSettings>({
     paperProfiles: [
-      { id: "art-card-300", name: "Art Card (300 GSM)", defaultGSM: 300, pricePer500: 5000 },
-      { id: "art-card-350", name: "Art Card (350 GSM)", defaultGSM: 350, pricePer500: 5600 },
-      { id: "matt-200", name: "Matt 200 GSM", defaultGSM: 200, pricePer500: 3600 },
+      { id: "art", name: "Art", defaultGSM: 300, pricePer500: 85 },
+      { id: "mont-blanc", name: "Mont Blanc", defaultGSM: 300, pricePer500: 250 },
+      { id: "arte", name: "Arte", defaultGSM: 300, pricePer500: 210 },
+      { id: "sbs", name: "SBS", defaultGSM: 250, pricePer500: 75 },
+      { id: "natural-evolution", name: "Natural Evolution", defaultGSM: 300, pricePer500: 300 },
+      { id: "butter-paper", name: "Butter Paper", defaultGSM: 60, pricePer500: 500 },
     ],
     sheetOptions: [
-      { id: "18x25", label: "18 × 25 cm", width: 18, height: 25 },
-      { id: "20x30", label: "20 × 30 cm", width: 20, height: 30 },
-      { id: "25x36", label: "25 × 36 cm", width: 25, height: 36 },
+      { id: "sheet-18x25", label: "18 × 25 in", width: 45.72, height: 63.5 },
+      { id: "sheet-20x30", label: "20 × 30 in", width: 50.8, height: 76.2 },
+      { id: "sheet-25x36", label: "25 × 36 in", width: 63.5, height: 91.44 },
+      { id: "sheet-15x20", label: "15 × 20 in", width: 38.1, height: 50.8 },
     ],
     printingSlabs: {
-      1000: 4000,
-      2000: 7000,
-      3000: 10000,
-      4000: 13000,
-      5000: 15000,
+      1000: 3000,
+      2000: 3500,
+      3000: 4000,
+      4000: 5000,
+      5000: 6000,
     },
-    perSheetAboveMax: 3.5,
+    perSheetAboveMax: 1.25,
     doubleSidedMultiplier: 2,
     safetySheets: 150,
     laminationPerThousand: 250,
@@ -150,6 +154,34 @@ const Index = () => {
       perUnitAbove: 4,
     },
     markupMultiplier: 1.7,
+    machineConfigs: [
+      {
+        id: "small-machine",
+        label: "Small Machine",
+        presets: [
+          { quantity: 1500, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 2000, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 2500, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 3000, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 4000, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 5000, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+          { quantity: 10000, productWidthIn: 5.5, productHeightIn: 8.5, paperType: "Art", gsm: 300, sheetWidthIn: 18, sheetHeightIn: 25, printingSide: "both", includeLamination: false, includeVarnish: false, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false },
+        ],
+      },
+      {
+        id: "envelope",
+        label: "Envelope Printing",
+        presets: [
+          { quantity: 1500, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 2000, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 2500, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 3000, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 4000, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 5000, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+          { quantity: 60000, productWidthIn: 5.75, productHeightIn: 8.75, paperType: "Art", gsm: 170, sheetWidthIn: 15, sheetHeightIn: 20, printingSide: "single", includeLamination: false, includeVarnish: true, includeSpotUV: false, includeFoiling: false, includeEmbossing: false, includeCreasing: false, includeEnvelope: true },
+        ],
+      },
+    ],
   });
 
   if (!userName) {

@@ -12,10 +12,35 @@ export interface OffsetPaperProfile {
   pricePer500: number;
 }
 
+export interface OffsetMachinePreset {
+  quantity: number;
+  productWidthIn: number;
+  productHeightIn: number;
+  paperType: string;
+  gsm: number;
+  sheetWidthIn: number;
+  sheetHeightIn: number;
+  printingSide: PrintingSideOption;
+  includeLamination: boolean;
+  includeVarnish: boolean;
+  includeSpotUV: boolean;
+  includeFoiling: boolean;
+  includeEmbossing: boolean;
+  includeCreasing: boolean;
+  includeEnvelope?: boolean;
+}
+
+export interface OffsetMachineConfig {
+  id: string;
+  label: string;
+  description?: string;
+  presets: OffsetMachinePreset[];
+}
+
 export interface OffsetPrintingSettings {
   paperProfiles: OffsetPaperProfile[];
   sheetOptions: OffsetSheetOption[];
-  printingSlabs: Record<number, number>; // key is sheet breakpoint (1000, 2000 etc)
+  printingSlabs: Record<number, number>;
   perSheetAboveMax: number;
   doubleSidedMultiplier: number;
   safetySheets: number;
@@ -35,6 +60,7 @@ export interface OffsetPrintingSettings {
     perUnitAbove: number;
   };
   markupMultiplier: number;
+  machineConfigs: OffsetMachineConfig[];
 }
 
 export type PrintingSideOption = "single" | "both";
@@ -57,6 +83,7 @@ export interface OffsetCalculatorInputs {
   includeCreasing: boolean;
   includeCutting: boolean;
   includePackaging: boolean;
+  includeEnvelope: boolean;
   sheetSelectionMode: SheetSelectionMode;
   selectedSheetId?: string;
 }
@@ -90,6 +117,7 @@ export interface OffsetCalculationResult {
   creasingCost: number;
   cuttingCost: number;
   packagingCost: number;
+  envelopeCost: number;
   subtotalCost: number;
   totalCostWithMarkup: number;
   perUnitCost: number;

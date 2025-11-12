@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Settings2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { OffsetPrintingSettings } from "@/types/offset";
+import { Badge } from "@/components/ui/badge";
 
 interface OffsetPrintingPricingSettingsProps {
   settings: OffsetPrintingSettings;
@@ -477,6 +478,46 @@ export const OffsetPrintingPricingSettings = ({
               }}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-4 rounded-lg border bg-muted/40 p-5">
+        <div className="flex items-center gap-2">
+          <Settings2 className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-base font-semibold">Machine Presets</p>
+            <p className="text-sm text-muted-foreground">
+              Reference-only summary of configured press presets and supported quantities.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-4">
+          {localSettings.machineConfigs.map((machine) => (
+            <div key={machine.id} className="rounded-md border bg-background p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{machine.label}</p>
+                  {machine.description && (
+                    <p className="text-xs text-muted-foreground">{machine.description}</p>
+                  )}
+                </div>
+                <Badge variant="secondary">{machine.presets.length} presets</Badge>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-xs text-muted-foreground">
+                {machine.presets.map((preset) => (
+                  <div key={`${machine.id}-${preset.quantity}`} className="rounded bg-muted/40 px-3 py-2">
+                    <p className="font-medium text-foreground">
+                      {preset.quantity.toLocaleString("en-IN")}
+                    </p>
+                    <p>
+                      Product: {preset.productWidthIn}" × {preset.productHeightIn}" • Sheet: {preset.sheetWidthIn}" × {preset.sheetHeightIn}"
+                    </p>
+                    <p>Printing: {preset.printingSide === "both" ? "Both" : "Single"}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

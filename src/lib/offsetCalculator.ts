@@ -164,7 +164,7 @@ export const calculateOffsetPrinting = (
     : 0;
 
   const varnishCost = inputs.includeVarnish
-    ? (sheetArea / settings.varnishDivisor) * quantity
+    ? (sheetArea / settings.varnishDivisor) * totalSheets
     : 0;
 
   const spotUVCost = inputs.includeSpotUV
@@ -193,6 +193,10 @@ export const calculateOffsetPrinting = (
     ? (settings.packagingPerThousand / 1000) * quantity
     : 0;
 
+  const envelopeCost = inputs.includeEnvelope
+    ? Math.max((800 / 1000) * quantity, 750)
+    : 0;
+
   const subtotalCost =
     totalPaperCost +
     printingCost +
@@ -203,7 +207,8 @@ export const calculateOffsetPrinting = (
     embossingCost +
     creasingCost +
     cuttingCost +
-    packagingCost;
+    packagingCost +
+    envelopeCost;
 
   const totalCostWithMarkup = subtotalCost * settings.markupMultiplier;
   const perUnitCost = quantity > 0 ? totalCostWithMarkup / quantity : 0;
@@ -229,6 +234,7 @@ export const calculateOffsetPrinting = (
     creasingCost,
     cuttingCost,
     packagingCost,
+    envelopeCost,
     subtotalCost,
     totalCostWithMarkup,
     perUnitCost,

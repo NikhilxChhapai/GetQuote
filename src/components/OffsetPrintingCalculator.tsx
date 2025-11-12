@@ -46,12 +46,21 @@ import { calculateOffsetPrinting } from "@/lib/offsetCalculator";
 import jsPDF from "jspdf";
 import { SecureCostReveal } from "@/components/SecureCostReveal";
 
+const PAPER_PRICE_MAP: Record<string, number> = {
+  Art: 85,
+  "Mont Blanc": 250,
+  Arte: 210,
+  SBS: 75,
+  "Natural Evolution": 300,
+  "Butter Paper": 500,
+};
+
+const resolvePaperPrice = (paperType: string, fallback: number) =>
+  PAPER_PRICE_MAP[paperType] ?? fallback;
+
 interface OffsetPrintingCalculatorProps {
   settings: OffsetPrintingSettings;
 }
-
-const formatNumber = (value: number, fractionDigits = 2) =>
-  Number.isFinite(value) ? value.toFixed(fractionDigits) : "0.00";
 
 export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorProps) => {
   const defaultPaperProfile = settings.paperProfiles[0];
@@ -65,14 +74,15 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     gsm: defaultPaperProfile?.defaultGSM ?? 300,
     paperPricePer500: defaultPaperProfile?.pricePer500 ?? 5000,
     printingSide: "both",
-    includeLamination: true,
-    includeVarnish: true,
-    includeSpotUV: true,
-    includeFoiling: true,
-    includeEmbossing: true,
-    includeCreasing: true,
+    includeLamination: false,
+    includeVarnish: false,
+    includeSpotUV: false,
+    includeFoiling: false,
+    includeEmbossing: false,
+    includeCreasing: false,
     includeCutting: true,
     includePackaging: true,
+    includeEnvelope: false,
     sheetSelectionMode: "auto",
     selectedSheetId: defaultSheetOption?.id,
   });
@@ -81,9 +91,52 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     calculateOffsetPrinting(inputs, settings),
   );
 
+  const currentMachine = useMemo(() => machineConfigs.find((machine) => machine.id === selectedMachineId), [machineConfigs, selectedMachineId]);
+  const currentPreset = useMemo(
+    () => currentMachine?.presets.find((preset) => preset.quantity === selectedPresetQuantity),
+    [currentMachine, selectedPresetQuantity],
+  );
+
   useEffect(() => {
-    setResults(calculateOffsetPrinting(inputs, settings));
-  }, [inputs, settings]);
+    if (!currentMachine || !currentPreset) {
+      return;
+    }
+
+    const widthCm = parseFloat((currentPreset.productWidthIn * 2.54).toFixed(2));
+    const heightCm = parseFloat((currentPreset.productHeightIn * 2.54).toFixed(2));
+    const sheetWidthCm = parseFloat((currentPreset.sheetWidthIn * 2.54).toFixed(2));
+    const sheetHeightCm = parseFloat((currentPreset.sheetHeightIn * 2.54).toFixed(2));
+
+    const sheetOption = settings.sheetOptions.find(
+      (item) => Math.abs(item.width - sheetWidthCm) < 0.25 && Math.abs(item.height - sheetHeightCm) < 0.25,
+    );
+
+    const profile = settings.paperProfiles.find(
+      (profileItem) => profileItem.id.toLowerCase() === currentPreset.paperType.toLowerCase() || profileItem.name.toLowerCase() === currentPreset.paperType.toLowerCase(),
+    );
+
+    setInputs((prev) => ({
+      ...prev,
+      productWidth: widthCm,
+      productHeight: heightCm,
+      quantity: currentPreset.quantity,
+      gsm: currentPreset.gsm,
+      paperPricePer500: resolvePaperPrice(currentPreset.paperType, prev.paperPricePer500),
+      printingSide: currentPreset.printingSide,
+      includeLamination: currentPreset.includeLamination,
+      includeVarnish: currentPreset.includeVarnish,
+      includeSpotUV: currentPreset.includeSpotUV,
+      includeFoiling: currentPreset.includeFoiling,
+      includeEmbossing: currentPreset.includeEmbossing,
+      includeCreasing: currentPreset.includeCreasing,
+      includeEnvelope: currentPreset.includeEnvelope ?? false,
+      includeCutting: true,
+      includePackaging: true,
+      selectedPaperProfileId: profile?.id ?? prev.selectedPaperProfileId,
+      sheetSelectionMode: sheetOption ? "manual" : prev.sheetSelectionMode,
+      selectedSheetId: sheetOption?.id ?? prev.selectedSheetId,
+    }));
+  }, [currentMachine, currentPreset, settings.paperProfiles, settings.sheetOptions]);
 
   const sheetDescriptions = useMemo(() => {
     const evaluations = results.sheetEvaluations;
@@ -93,6 +146,13 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     });
     return map;
   }, [results.sheetEvaluations]);
+
+  const machineConfigs = settings.machineConfigs;
+  const defaultMachine = machineConfigs[0];
+  const defaultPreset = defaultMachine?.presets[0];
+
+  const [selectedMachineId, setSelectedMachineId] = useState(defaultMachine?.id ?? "");
+  const [selectedPresetQuantity, setSelectedPresetQuantity] = useState(defaultPreset?.quantity ?? inputs.quantity);
 
   const handleNumberChange = (key: keyof OffsetCalculatorInputs) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = event.target.value;
@@ -168,6 +228,12 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
       yPos += 8;
     };
 
+    if (currentMachine) {
+      addRow("Machine", currentMachine.label);
+    }
+    if (currentPreset) {
+      addRow("Preset Quantity", currentPreset.quantity.toLocaleString("en-IN"));
+    }
     addRow("Product Size (W × H cm)", `${inputs.productWidth} × ${inputs.productHeight}`);
     addRow("Quantity", inputs.quantity.toLocaleString("en-IN"));
     const selectedPaper = settings.paperProfiles.find((item) => item.id === inputs.selectedPaperProfileId);
@@ -210,6 +276,9 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     if (results.creasingCost > 0) addCostRow("Creasing", results.creasingCost);
     if (results.cuttingCost > 0) addCostRow("Cutting", results.cuttingCost);
     if (results.packagingCost > 0) addCostRow("Packaging", results.packagingCost);
+    if (results.envelopeCost > 0) {
+      addCostRow("Envelope", results.envelopeCost);
+    }
 
     yPos += 4;
     doc.setDrawColor(200, 200, 200);
@@ -244,9 +313,86 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
     ? sheetDescriptions.get(inputs.selectedSheetId)
     : undefined;
 
+  const handleMachineChange = (machineId: string) => {
+    setSelectedMachineId(machineId);
+    const machine = machineConfigs.find((item) => item.id === machineId);
+    if (machine?.presets.length) {
+      setSelectedPresetQuantity(machine.presets[0].quantity);
+    }
+  };
+
+  const handlePresetChange = (quantityValue: string) => {
+    const qty = Number(quantityValue);
+    if (!Number.isNaN(qty)) {
+      setSelectedPresetQuantity(qty);
+    }
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-6">
+        <Card className="shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-elegant)]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-accent" />
+              Machine Preset
+            </CardTitle>
+            <CardDescription>Select a press configuration and quantity preset to auto-fill inputs.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Machine</Label>
+                <Select value={selectedMachineId} onValueChange={handleMachineChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select machine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {machineConfigs.map((machine) => (
+                      <SelectItem key={machine.id} value={machine.id}>
+                        {machine.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {currentMachine && (
+                <div className="space-y-2">
+                  <Label>Quantity Preset</Label>
+                  <Select value={String(selectedPresetQuantity)} onValueChange={handlePresetChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select quantity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentMachine.presets.map((preset) => (
+                        <SelectItem key={preset.quantity} value={String(preset.quantity)}>
+                          {preset.quantity.toLocaleString("en-IN")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            {currentPreset && (
+              <div className="grid gap-3 sm:grid-cols-3 text-sm text-muted-foreground">
+                <div>
+                  <span className="block font-medium text-foreground">Product Size</span>
+                  {currentPreset.productWidthIn}" × {currentPreset.productHeightIn}"
+                </div>
+                <div>
+                  <span className="block font-medium text-foreground">Sheet Size</span>
+                  {currentPreset.sheetWidthIn}" × {currentPreset.sheetHeightIn}"
+                </div>
+                <div>
+                  <span className="block font-medium text-foreground">Printing</span>
+                  {currentPreset.printingSide === "both" ? "Both sides" : "Single side"}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-elegant)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -570,6 +716,17 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
                 <HelpTooltip content="Applies per-1000 packaging cost from settings." />
               </Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="envelope"
+                checked={inputs.includeEnvelope}
+                onCheckedChange={handleToggleChange("includeEnvelope")}
+              />
+              <Label htmlFor="envelope" className="flex cursor-pointer items-center gap-2">
+                Envelope Conversion
+                <HelpTooltip content="Adds envelope conversion cost based on quantity when enabled." />
+              </Label>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -685,9 +842,15 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
                     </div>
                   )}
                   {results.packagingCost > 0 && (
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Packaging</span>
                       <span className="font-medium">₹{formatNumber(results.packagingCost)}</span>
+                    </div>
+                  )}
+                  {results.envelopeCost > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Envelope</span>
+                      <span className="font-medium">₹{formatNumber(results.envelopeCost)}</span>
                     </div>
                   )}
                 </div>
@@ -729,7 +892,7 @@ export const OffsetPrintingCalculator = ({ settings }: OffsetPrintingCalculatorP
                     <TableRow key={evaluation.option.id} className={isActive ? "bg-accent/10" : undefined}>
                       <TableCell>{evaluation.option.label}</TableCell>
                       <TableCell className="text-right">
-                        {evaluation.option.width} × {evaluation.option.height}
+                        {(evaluation.option.width / 2.54).toFixed(2)} × {(evaluation.option.height / 2.54).toFixed(2)} in
                       </TableCell>
                       <TableCell className="text-right">{evaluation.upsStandard}</TableCell>
                       <TableCell className="text-right">{evaluation.upsRotated}</TableCell>
